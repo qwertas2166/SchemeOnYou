@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "1.0",
+  "project": {
+    "name": "SchemeOnYou",
+    "type": "desktop sketch editor",
+    "description": "Keyboard-first desktop sketch editor for sequence diagrams and database tables diagrams on a visual canvas.",
+    "mvpNature": "sketch editor, not strict UML/modeling suite",
+    "primaryWorkspace": "visual canvas",
+    "mousePolicy": "allowed but not required"
+  },
+  "mvp": {
+    "included": [
+      "Java + JavaFX desktop application",
+      "Linux support",
+      "Windows support",
+      "macOS support",
+      "multiple diagrams per project",
+      "sequence diagram",
+      "database tables diagram",
+      "visual canvas",
+      "keyboard-first control",
+      "IDE-style shortcuts",
+      "hardcoded keymap",
+      "command palette with fuzzy search",
+      "simple hardcoded layout",
+      "project save/open",
+      "Git-friendly storage",
+      "undo/redo for mutating operations",
+      "SVG export",
+      "run via Java JAR / shell script"
+    ],
+    "excluded": [
+      "strict UML model",
+      "class diagram",
+      "use case diagram",
+      "activity diagram",
+      "state diagram",
+      "component diagram",
+      "deployment diagram",
+      "PlantUML export/import",
+      "Mermaid export/import",
+      "SQL DDL import/export",
+      "sequence combined fragments: alt/opt/loop/par",
+      "crow's foot ERD notation",
+      "required manual keyboard positioning",
+      "user-configurable auto-layout",
+      "user-configurable keymap",
+      "Vim-like mode",
+      "IDE integration",
+      "CLI render/export",
+      "PNG export",
+      "PDF export",
+      "desktop installers/packages: deb/rpm/msi/exe/dmg",
+      "heavy dependencies without explicit approval"
+    ]
+  },
+  "platforms": ["linux", "windows", "macos"],
+  "technology": {
+    "language": "Java",
+    "ui": "JavaFX",
+    "packagingMvp": "Java JAR plus launch script",
+    "dependencyPolicy": {
+      "lightDependencies": "allowed",
+      "heavyLayoutOrRenderingDependencies": "requires explicit discussion/approval"
+    }
+  },
+  "diagrams": {
+    "sequence": {
+      "elements": ["participant", "lifeline", "message", "activation"],
+      "participantTypes": ["actor", "service", "database", "external_system"],
+      "messageTypes": ["sync", "async", "return", "self_call"],
+      "messageProperties": ["source", "target", "label", "order", "type"],
+      "excludedMvp": ["combined_fragments_alt_opt_loop_par"]
+    },
+    "databaseTables": {
+      "elements": ["table", "column", "primary_key", "foreign_key"],
+      "tableProperties": ["name", "columns"],
+      "columnProperties": ["name", "type", "nullable", "primary_key_flag", "foreign_key_reference"],
+      "relations": ["foreign_key", "one_to_one", "one_to_many", "many_to_many_via_join_table"],
+      "excludedMvp": ["crow_foot_erd", "sql_ddl_import", "sql_ddl_export"]
+    }
+  },
+  "ux": {
+    "principles": [
+      "keyboard-first, not keyboard-only",
+      "visual canvas is primary workspace",
+      "command palette is primary command entry",
+      "mouse may duplicate operations",
+      "all MVP operations must be possible by keyboard",
+      "selection and focus must be visible",
+      "mutating operations are undo-safe"
+    ],
+    "focusAreas": ["project_diagram_list", "canvas", "properties_panel", "command_palette"],
+    "keyboardOperations": [
+      "new_project",
+      "open_project",
+      "save_project",
+      "new_diagram",
+      "select_diagram",
+      "create_element",
+      "select_element",
+      "edit_element",
+      "create_relation",
+      "delete_element_or_relation",
+      "undo",
+      "redo",
+      "export_svg"
+    ],
+    "commandPaletteCommands": [
+      "New project",
+      "Open project",
+      "Save project",
+      "New sequence diagram",
+      "New database diagram",
+      "Add participant",
+      "Add message",
+      "Add table",
+      "Add column",
+      "Add foreign key",
+      "Rename selected",
+      "Edit selected",
+      "Delete selected",
+      "Find element",
+      "Export SVG",
+      "Show shortcuts"
+    ],
+    "shortcuts": {
+      "command_palette": ["Ctrl+K", "Ctrl+Shift+P"],
+      "save": "Ctrl+S",
+      "open": "Ctrl+O",
+      "new": "Ctrl+N",
+      "find": "Ctrl+F",
+      "undo": "Ctrl+Z",
+      "redo": ["Ctrl+Y", "Ctrl+Shift+Z"],
+      "next_focus": "Tab",
+      "previous_focus": "Shift+Tab",
+      "edit_or_confirm": "Enter",
+      "cancel_or_back": "Esc",
+      "delete_selected": "Delete"
+    }
+  },
+  "storage": {
+    "preferredFormats": ["JSON", "YAML"],
+    "requirements": [
+      "plain text",
+      "readable enough for debugging",
+      "stable ordering",
+      "deterministic serialization",
+      "version field",
+      "project metadata",
+      "list of diagrams",
+      "diagram model",
+      "canvas state/layout"
+    ],
+    "gitFriendly": true
+  },
+  "export": {
+    "mvp": ["SVG"],
+    "postMvp": ["PNG", "PDF", "PlantUML", "Mermaid", "SQL DDL"]
+  },
+  "architecture": {
+    "requiredSeparation": ["project_model", "diagram_model", "canvas_layout_state", "ui_state"],
+    "commandLayer": {
+      "required": true,
+      "responsibilities": ["keyboard_invocation", "undo_redo", "testability", "future_macros_scripting"]
+    },
+    "layoutEngine": {
+      "separateComponent": true,
+      "mvpImplementation": "simple hardcoded layout"
+    }
+  },
+  "nonFunctional": {
+    "performanceMvp": {
+      "maxComfortableElementsPerDiagram": 200,
+      "maxComfortableRelationsPerDiagram": 500
+    },
+    "accessibility": [
+      "visible focus indicator",
+      "predictable tab order",
+      "no mouse-only actions for MVP features",
+      "readable contrast"
+    ],
+    "changeSafety": [
+      "undo for mutating operations",
+      "delete must be undo-safe",
+      "bulk delete requires confirmation",
+      "no silent destructive actions"
+    ]
+  },
+  "openQuestions": []
+}

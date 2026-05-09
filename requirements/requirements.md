@@ -1,356 +1,298 @@
-# Требования к SchemeOnYou
+# SchemeOnYou — требования
 
-## 1. Описание продукта
+## 1. Продукт
 
-SchemeOnYou — desktop sketch editor для создания и редактирования sequence-диаграмм и диаграмм таблиц БД на визуальном canvas. Все операции должны быть доступны с клавиатуры; мышь разрешена, но не обязательна.
+- Desktop sketch editor для диаграмм.
+- Основной рабочий режим: визуальный canvas.
+- Все операции доступны с клавиатуры.
+- Мышь разрешена, но не обязательна.
+- MVP не является строгим UML/modeling suite.
 
-## 2. Цели
+## 2. MVP
 
-- Позволить разработчику быстро создавать sequence-диаграммы и диаграммы таблиц БД.
-- Обеспечить удобный UX/UI с визуальным canvas как основным рабочим пространством.
-- Сделать все операции доступными с клавиатуры, не запрещая использование мыши.
-- Обеспечить сохранение, открытие и экспорт диаграмм.
+### 2.1 Входит в MVP
 
-## 3. MVP
+- Java + JavaFX desktop application.
+- Платформы:
+  - Linux;
+  - Windows;
+  - macOS.
+- Один проект содержит несколько диаграмм.
+- Типы диаграмм:
+  - sequence diagram;
+  - диаграмма таблиц БД.
+- Визуальный canvas.
+- Keyboard-first управление.
+- IDE-style shortcuts.
+- Захардкоженная keymap.
+- Command palette с fuzzy search.
+- Простая захардкоженная раскладка элементов.
+- Сохранение/открытие проекта.
+- Git-friendly формат хранения.
+- Undo/redo для изменяющих операций.
+- Экспорт в SVG.
+- Запуск через Java JAR / shell script.
 
-### 3.1 Характер MVP
+### 2.2 Не входит в MVP
 
-MVP — быстрый sketch editor, не строгий UML/modeling suite. Приоритет — скорость создания диаграмм, удобный визуальный canvas и keyboard-first workflow.
-
-Проект должен поддерживать несколько диаграмм в одном проекте.
-
-### 3.2 Поддерживаемые диаграммы
-
-Приоритет MVP:
-
-1. Sequence diagram.
-2. Диаграмма таблиц БД / ER-like database schema diagram.
-
-Не входит в MVP без отдельного решения:
-
+- Строгая UML-модель.
+- Class/use case/activity/state/component/deployment diagrams.
 - PlantUML export/import.
+- Mermaid export/import.
 - SQL DDL import/export.
-- Sequence combined fragments: alt, opt, loop, par.
+- Sequence combined fragments:
+  - alt;
+  - opt;
+  - loop;
+  - par.
+- Crow's foot ERD notation.
+- Ручное позиционирование элементов с клавиатуры как обязательная возможность.
+- Настройка auto-layout пользователем.
+- Пользовательская настройка keymap.
+- Vim-like режим.
 - IDE integration.
 - CLI render/export.
-- Packaging installers: deb/rpm/msi/dmg.
-- Manual keyboard positioning as a required feature.
-- Class diagram.
-- Use case diagram.
-- Activity diagram.
-- State diagram.
-- Component diagram.
-- Deployment diagram.
-
-## 4. Функциональные требования
-
-### FR-001. Desktop-приложение
-
-Приложение должно запускаться как desktop-приложение.
-
-**Приоритет:** Must.
-
-### FR-002. Полное управление с клавиатуры
-
-Все основные операции должны быть доступны с клавиатуры. Мышь разрешена, но не должна быть обязательной:
-
-- создание диаграммы;
-- создание элемента;
-- выбор элемента;
-- редактирование элемента;
-- создание связи;
-- удаление элемента/связи;
-- перемещение фокуса;
-- сохранение;
-- экспорт;
-- undo/redo.
-
-**Приоритет:** Must.
-
-### FR-003. Command palette
-
-Приложение должно иметь command palette с fuzzy search команд.
-
-Примеры команд:
-
-- New diagram.
-- Add participant.
-- Add message.
-- Add database table.
-- Add table column.
-- Add foreign key / relation.
-- Rename selected.
-- Edit selected.
-- Auto-layout.
-- Export.
-- Show shortcuts.
-
-**Приоритет:** Must.
-
-### FR-004. Визуальный canvas
-
-Приложение должно отображать диаграмму на canvas.
-
-Canvas должен поддерживать:
-
-- отображение sequence-элементов: participants, lifelines, messages, activations;
-- отображение DB-элементов: tables, columns, primary keys, foreign keys;
-- отображение связей;
-- выделение текущего элемента;
-- zoom in/out;
-- pan/scroll с клавиатуры;
-- auto-fit диаграммы.
-
-**Приоритет:** Must.
-
-### FR-005. Структурная навигация
-
-Пользователь должен уметь перемещаться по диаграмме с клавиатуры:
-
-- следующий/предыдущий элемент;
-- переход к связанному элементу;
-- поиск элемента по имени;
-- переход по списку элементов;
-- переход между canvas, деревом модели и панелью свойств.
-
-**Приоритет:** Must.
-
-### FR-006. Текстовое редактирование свойств элемента
-
-Выбранный UML-элемент должен редактироваться через текстовую панель или inline editor.
-
-Для sequence diagram минимум:
-
-- имя participant;
-- тип participant: actor/service/database/external system;
-- сообщение: from, to, label, order, sync/async/return;
-- activation markers.
-
-Для диаграммы таблиц БД минимум:
-
-- имя таблицы;
-- список колонок;
-- типы колонок;
-- primary key;
-- nullable/not null;
-- foreign key связи;
-- индексы — опционально.
-
-**Приоритет:** Must.
-
-### FR-007. Создание связей с клавиатуры
-
-Пользователь должен создавать связь без мыши:
-
-1. выбрать команду Add relation;
-2. выбрать source через fuzzy search или текущий selection;
-3. выбрать target через fuzzy search;
-4. выбрать тип связи;
-5. подтвердить создание.
-
-Типы связей для MVP:
-
-Sequence diagram:
-
-- sync message;
-- async message;
-- return message;
-- self-call.
-
-Диаграмма таблиц БД:
-
-- foreign key;
-- one-to-one;
-- one-to-many;
-- many-to-many через join table.
-
-**Приоритет:** Must.
-
-### FR-008. Auto-layout
-
-Приложение должно иметь простой захардкоженный layout для MVP. Расширенная настройка auto-layout и ручное позиционирование выносятся за рамки MVP.
-
-Минимум:
-
-- предсказуемая раскладка всей диаграммы;
-- сохранение состояния canvas в файле проекта.
-
-**Приоритет:** Must.
-
-### FR-009. Undo/redo
-
-Все изменяющие операции должны поддерживать undo/redo.
-
-**Приоритет:** Must.
-
-### FR-010. Сохранение проекта
-
-Приложение должно сохранять диаграммы в любом внутреннем формате, выбранном разработчиком. Приоритет — удобный UX/UI и надежное сохранение состояния canvas.
-
-Предпочтительный вариант по умолчанию: JSON или YAML как простой текстовый формат.
-
-Файл должен содержать:
-
-- модель диаграммы;
-- визуальный layout;
-- metadata версии формата.
-
-**Приоритет:** Must.
-
-### FR-011. Экспорт PlantUML
-
-Экспорт PlantUML не входит в MVP.
-
-**Приоритет:** Later.
-
-### FR-012. Экспорт изображений
-
-Приложение должно экспортировать диаграмму в SVG.
-
-PNG и PDF не входят в MVP.
-
-**Приоритет:** Must.
-
-### FR-013. Импорт PlantUML
-
-Импорт PlantUML не входит в MVP.
-
-**Приоритет:** Later.
-
-### FR-014. Горячие клавиши
-
-Приложение должно иметь захардкоженную IDE-style keymap. Пользовательская настройка keymap не входит в MVP.
-
-Базовые shortcuts:
-
-- `Ctrl+K` или `Ctrl+Shift+P` — command palette;
-- `Ctrl+S` — save;
-- `Ctrl+Z` — undo;
-- `Ctrl+Y` / `Ctrl+Shift+Z` — redo;
-- `Ctrl+F` — find element;
-- `Tab` — следующий focus area/element;
-- `Shift+Tab` — предыдущий focus area/element;
-- `Enter` — edit/confirm;
-- `Esc` — cancel/back;
+- PNG/PDF export.
+- Installers/packages:
+  - deb;
+  - rpm;
+  - msi/exe;
+  - dmg.
+- Тяжелые зависимости без отдельного согласования.
+
+## 3. Диаграммы MVP
+
+### 3.1 Sequence diagram
+
+- Элементы:
+  - participant;
+  - lifeline;
+  - message;
+  - activation.
+- Типы participant:
+  - actor;
+  - service;
+  - database;
+  - external system.
+- Типы message:
+  - sync;
+  - async;
+  - return;
+  - self-call.
+- Свойства message:
+  - source;
+  - target;
+  - label;
+  - order;
+  - type.
+
+### 3.2 Диаграмма таблиц БД
+
+- Элементы:
+  - table;
+  - column;
+  - primary key;
+  - foreign key.
+- Свойства table:
+  - name;
+  - columns.
+- Свойства column:
+  - name;
+  - type;
+  - nullable/not null;
+  - primary key flag;
+  - foreign key reference.
+- Связи:
+  - foreign key;
+  - one-to-one;
+  - one-to-many;
+  - many-to-many через join table.
+- ERD crow's foot notation не требуется в MVP.
+
+## 4. UX/UI MVP
+
+### 4.1 Canvas
+
+- Отображает элементы и связи диаграммы.
+- Показывает текущий selection/focus.
+- Поддерживает:
+  - zoom in/out;
+  - pan/scroll с клавиатуры;
+  - auto-fit;
+  - простую автоматическую раскладку.
+
+### 4.2 Keyboard-first управление
+
+- Все основные операции доступны с клавиатуры:
+  - создать проект;
+  - открыть проект;
+  - сохранить проект;
+  - создать диаграмму;
+  - выбрать диаграмму;
+  - создать элемент;
+  - выбрать элемент;
+  - изменить элемент;
+  - создать связь;
+  - удалить элемент/связь;
+  - выполнить undo/redo;
+  - экспортировать SVG.
+- Мышь может дублировать операции, но не заменяет keyboard workflow.
+
+### 4.3 Command palette
+
+- Открывается через shortcut.
+- Поддерживает fuzzy search.
+- Команды MVP:
+  - New project;
+  - Open project;
+  - Save project;
+  - New sequence diagram;
+  - New database diagram;
+  - Add participant;
+  - Add message;
+  - Add table;
+  - Add column;
+  - Add foreign key;
+  - Rename selected;
+  - Edit selected;
+  - Delete selected;
+  - Find element;
+  - Export SVG;
+  - Show shortcuts.
+
+### 4.4 Навигация
+
+- Переключение между зонами UI:
+  - project/diagram list;
+  - canvas;
+  - properties panel;
+  - command palette.
+- Навигация по элементам:
+  - next/previous element;
+  - find by name;
+  - go to linked element;
+  - select source/target через fuzzy search.
+
+### 4.5 Properties editing
+
+- Выбранный элемент редактируется через properties panel или inline editor.
+- Редактирование должно быть доступно с клавиатуры.
+- Изменения проходят через undoable commands.
+
+### 4.6 Shortcuts MVP
+
+- `Ctrl+K` или `Ctrl+Shift+P` — command palette.
+- `Ctrl+S` — save.
+- `Ctrl+O` — open.
+- `Ctrl+N` — new project/diagram через command palette или dialog.
+- `Ctrl+F` — find.
+- `Ctrl+Z` — undo.
+- `Ctrl+Y` или `Ctrl+Shift+Z` — redo.
+- `Tab` — next focus area/element.
+- `Shift+Tab` — previous focus area/element.
+- `Enter` — edit/confirm.
+- `Esc` — cancel/back.
 - `Delete` — delete selected через undo-safe action.
 
-**Приоритет:** Must.
+## 5. Хранение проекта
 
-### FR-015. Help overlay
+### 5.1 Формат
 
-Приложение должно показывать список доступных команд и shortcuts.
+- Формат выбирается разработчиком.
+- Предпочтительно: JSON или YAML.
+- Требования:
+  - plain text;
+  - readable enough for debugging;
+  - stable ordering;
+  - deterministic serialization;
+  - version field;
+  - project metadata;
+  - list of diagrams;
+  - diagram model;
+  - canvas state/layout.
 
-**Приоритет:** Should.
+### 5.2 Git-friendly workflow
 
-## 5. Нефункциональные требования
+- Файлы проекта должны нормально храниться в Git.
+- Порядок сущностей должен быть стабильным.
+- Сериализация должна быть детерминированной.
+- Diff должен быть читаемым, насколько это практично.
 
-### NFR-001. Стек
+## 6. Экспорт
 
-Стек: Java + JavaFX.
+### 6.1 MVP
 
-Swing и Compose Multiplatform не используются в MVP без отдельного решения.
+- SVG export.
 
-**Приоритет:** Must.
+### 6.2 После MVP
 
-### NFR-002. Производительность
+- PNG export.
+- PDF export.
+- PlantUML export/import.
+- Mermaid export/import.
+- SQL DDL import/export.
 
-MVP должен комфортно работать с диаграммами до:
+## 7. Архитектура
 
-- 200 элементов;
-- 500 связей.
+### 7.1 Обязательные решения
 
-**Приоритет:** Should.
+- Java + JavaFX.
+- Разделение:
+  - project model;
+  - diagram model;
+  - canvas/layout state;
+  - UI state.
+- Все изменяющие действия проходят через command layer.
+- Command layer обеспечивает:
+  - keyboard invocation;
+  - undo/redo;
+  - тестируемость;
+  - будущие macros/scripting.
+- Layout engine выделен отдельным компонентом.
+- В MVP layout может быть простой и захардкоженный.
 
-### NFR-003. Кроссплатформенность
+### 7.2 Dependency policy
 
-Целевые платформы:
+- Легкие зависимости допустимы.
+- Тяжелые зависимости для layout/rendering — только после отдельного согласования.
+- Большие dependency installs — не делать без подтверждения.
 
-- Linux — Must;
-- Windows — Must;
-- macOS — Must.
+## 8. Нефункциональные требования
 
-### NFR-004. Доступность
+### 8.1 Производительность MVP
 
-UI должен быть полностью доступен с клавиатуры:
+- Комфортная работа до:
+  - 200 элементов на диаграмме;
+  - 500 связей на диаграмме.
 
-- видимый focus indicator;
-- предсказуемый tab order;
-- отсутствие mouse-only действий;
-- readable contrast.
+### 8.2 Доступность
 
-**Приоритет:** Must.
+- Видимый focus indicator.
+- Предсказуемый tab order.
+- Нет mouse-only действий для MVP-функций.
+- Контрастность достаточна для чтения.
 
-### NFR-005. Безопасность изменений
+### 8.3 Безопасность изменений
 
-Деструктивные операции должны быть безопасными:
+- Undo для изменяющих операций.
+- Удаление должно быть undo-safe.
+- Массовое удаление требует подтверждения.
+- Нет silent destructive actions.
 
-- undo для удаления;
-- подтверждение для массового удаления;
-- отсутствие silent destructive actions.
+## 9. Зафиксированные решения
 
-**Приоритет:** Must.
-
-## 6. Архитектурные требования
-
-### AR-001. Разделение модели и представления
-
-Модель UML должна быть отделена от canvas/layout.
-
-**Приоритет:** Must.
-
-### AR-002. Command bus
-
-Все действия пользователя должны проходить через единый command layer, чтобы обеспечить:
-
-- keyboard invocation;
-- menu invocation;
-- undo/redo;
-- макросы в будущем;
-- тестируемость.
-
-**Приоритет:** Must.
-
-### AR-003. Layout engine abstraction
-
-Auto-layout должен быть отдельным компонентом с возможностью заменить реализацию. В MVP допускается простая захардкоженная реализация.
-
-**Приоритет:** Should.
-
-### AR-004. Git-friendly workflow
-
-Формат проекта должен быть совместим с Git-friendly workflow:
-
-- plain text storage;
-- stable ordering of entities;
-- deterministic serialization/export;
-- readable diffs where practical.
-
-**Приоритет:** Must.
-
-### AR-005. Dependency policy
-
-Тяжелые зависимости для layout/rendering являются обсуждаемыми и не должны добавляться без отдельного решения.
-
-**Приоритет:** Must.
-
-## 7. Вопросы, влияющие на требования
-
-См. `questions.md`.
-
-
-## 8. Зафиксированные решения
-
-- MVP: sequence diagram и диаграмма таблиц БД.
-- Характер MVP: быстрый sketch editor, не строгий UML/modeling suite.
+- MVP: sketch editor.
+- MVP-диаграммы:
+  - sequence diagram;
+  - диаграмма таблиц БД.
 - Проект поддерживает несколько диаграмм.
-- Основной приоритет: удобный UX/UI с визуальным canvas.
-- Формат хранения: любой подходящий; предпочтительно JSON/YAML из-за простоты и отладки.
-- Git-friendly workflow обязателен: plain text, stable ordering, deterministic serialization/export.
-- Стек: Java + JavaFX.
-- Мышь не запрещена, но все операции должны иметь keyboard workflow.
-- Shortcuts: IDE-style, захардкоженные; настройка keymap не входит в MVP.
+- Основной приоритет: удобный визуальный canvas.
+- Все операции доступны с клавиатуры.
+- Мышь разрешена.
+- Shortcuts: IDE-style.
+- Keymap: hardcoded.
+- Формат хранения: любой, предпочтительно JSON/YAML.
+- Git-friendly workflow обязателен.
+- SVG export входит в MVP.
 - Платформы: Linux, Windows, macOS.
-- SVG export входит в MVP; PNG/PDF, PlantUML import/export, SQL DDL import/export, IDE integration, CLI render/export и installers — за рамками MVP.
-- Для диаграмм БД достаточно таблиц с FK-связями; crow's foot не требуется в MVP.
-- Sequence combined fragments alt/opt/loop/par — за рамками MVP.
-- Для MVP достаточно скрипта запуска java jar.
+- Запуск MVP: java jar script.

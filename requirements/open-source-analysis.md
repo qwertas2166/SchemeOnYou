@@ -1,189 +1,145 @@
-# Анализ open source решений для UML/diagramming
-
-## Цель анализа
-
-Найти сильные и слабые стороны существующих решений для проектирования SchemeOnYou: desktop UML-редактора с управлением с клавиатуры без мыши.
+# Анализ open source решений
 
 ## Краткий вывод
 
-Существующие инструменты делятся на две группы:
+- Ниша SchemeOnYou: keyboard-first desktop sketch editor с визуальным canvas.
+- Существующие GUI-инструменты сильны в canvas editing, но часто mouse-first.
+- Text-first инструменты удобны для клавиатуры и Git, но не дают полноценного визуального UX.
+- Для MVP нужно брать гибрид:
+  - визуальный canvas;
+  - command palette;
+  - properties panel;
+  - Git-friendly storage;
+  - SVG export.
 
-1. **Text-first / diagram-as-code**: PlantUML, Mermaid, D2.
-   - Отлично подходят для клавиатурного ввода.
-   - Хорошо версионируются в Git.
-   - Слабо подходят для точного интерактивного визуального редактирования layout'а.
+## Что учитывать в MVP
 
-2. **GUI-first редакторы**: draw.io/diagrams.net, UMLet, Eclipse Papyrus, Modelio.
-   - Сильны в визуальном моделировании.
-   - Обычно завязаны на мышь, палитры, drag-and-drop.
-   - Keyboard-only сценарий либо неполный, либо вторичен.
-
-Для SchemeOnYou стоит взять гибридную модель: визуальный canvas + command palette + текстовые команды + структурная навигация по модели.
-
----
+- Не копировать тяжелые modeling suites.
+- Не строить строгий UML modeler.
+- Не делать PlantUML/Mermaid основным UX.
+- Делать canvas главным рабочим пространством.
+- Делать keyboard workflow обязательным для всех MVP-функций.
 
 ## PlantUML
 
-**Тип:** text-based UML renderer.  
-**Open source:** да.  
-**Стек:** Java.
+### Полезно для SchemeOnYou
 
-### Сильные стороны
+- Text-first подход.
+- Простые декларативные описания.
+- Хорошая совместимость с Git.
+- Сильная поддержка sequence diagrams.
+- Java ecosystem.
 
-- Простой текстовый DSL.
-- Нативно удобен для клавиатуры.
-- Поддерживает основные UML-диаграммы: sequence, use case, class, object, activity, component, deployment, state, timing.
-- Хорош для документации, Git, code review.
-- Можно использовать как экспортный/импортный формат или backend renderer.
+### Не брать в MVP
 
-### Слабые стороны
+- PlantUML export/import.
+- PlantUML как основной формат хранения.
+- Полностью text-only UX.
 
-- Нет полноценного интерактивного desktop canvas-редактирования.
-- Layout в основном автоматический; точная ручная компоновка ограничена.
-- DSL удобен разработчикам, но может быть сложен для пользователей, ожидающих WYSIWYG.
+### Возможное применение после MVP
 
-### Что взять
-
-- Текстовые команды создания элементов.
-- Возможность экспортировать в PlantUML.
-- Live preview от модели/DSL.
-
----
+- Export sequence diagram to PlantUML.
+- Import simple PlantUML sequence diagram.
+- Compare визуальной модели с generated PlantUML.
 
 ## Mermaid
 
-**Тип:** text-based diagrams для Markdown/web.  
-**Open source:** да.
+### Полезно для SchemeOnYou
 
-### Сильные стороны
+- Простая диаграммная нотация.
+- Популярность в Markdown/GitHub/GitLab.
+- Идея lightweight diagram-as-code.
 
-- Популярен в документации.
-- Хорошо встраивается в Markdown/GitHub/GitLab.
-- Удобен для sequence/class/state/flow диаграмм.
+### Не брать в MVP
 
-### Слабые стороны
+- Mermaid export/import.
+- Mermaid renderer как обязательную зависимость.
+- Web-first подход.
 
-- UML-покрытие слабее PlantUML/Papyrus.
-- Не desktop-first.
-- Layout и редактирование ограничены.
+### Возможное применение после MVP
 
-### Что взять
-
-- Mermaid export как опциональный формат.
-- Идею простого декларативного синтаксиса.
-
----
+- Export to Mermaid.
+- Documentation-friendly export.
 
 ## UMLet
 
-**Тип:** lightweight desktop UML editor.  
-**Open source:** да.  
-**Стек:** Java.
+### Полезно для SchemeOnYou
 
-### Сильные стороны
+- Lightweight desktop editor.
+- Sketch-first подход.
+- Java-based desktop модель.
+- Быстрое редактирование свойств через текст.
 
-- Быстрое создание UML-скетчей.
-- Элементы редактируются через текстовую панель и небольшой markdown-подобный синтаксис.
-- Java-based desktop подход близок к предпочтениям проекта.
-- Хороший пример сочетания визуального canvas и текстового редактирования свойств.
+### Что взять в MVP
 
-### Слабые стороны
-
-- Создание/размещение элементов в основном визуальное.
-- Keyboard-only workflow не является центральной идеей.
-- Модель скорее diagram sketch, чем строгая UML-модель.
-
-### Что взять
-
-- Текстовое редактирование выбранного элемента.
 - Простоту UI.
-- Быстрое sketch-first моделирование.
+- Text properties для выбранного элемента.
+- Быстрое создание sketch diagrams.
 
----
+### Что не брать
+
+- Mouse-first создание элементов.
+- Нестрогую модель без Git-friendly serialization.
 
 ## diagrams.net / draw.io
 
-**Тип:** универсальный diagram editor, есть desktop.  
-**Open source:** да/частично; desktop доступен.
+### Полезно для SchemeOnYou
 
-### Сильные стороны
+- Зрелый canvas UX.
+- Zoom/pan/selection patterns.
+- Экспорт изображений.
+- Большой опыт визуального diagram editing.
 
-- Зрелый визуальный редактор.
-- Большая библиотека фигур.
-- Offline desktop.
-- Импорт/экспорт, templates, интеграции.
+### Что взять в MVP
 
-### Слабые стороны
+- Canvas как основной workspace.
+- SVG export.
+- Видимый selection/focus.
+- Базовые операции canvas navigation.
 
-- Универсальный редактор, не специализированный UML modeler.
-- Основной UX — мышь, drag-and-drop, canvas manipulation.
-- Keyboard shortcuts есть, но не заменяют полностью мышь.
+### Что не брать в MVP
 
-### Что взять
-
-- Горячие клавиши для canvas operations.
-- Быстрое добавление связанных элементов.
-- Практики экспорта/импорта.
-
----
+- Большую библиотеку фигур.
+- Универсальный diagram editor scope.
+- Mouse-first drag-and-drop как основной сценарий.
 
 ## Eclipse Papyrus
 
-**Тип:** industrial-grade UML/SysML modeling tool.  
-**Open source:** да.  
-**Стек:** Eclipse/Java.
+### Полезно для SchemeOnYou
 
-### Сильные стороны
-
-- Полная поддержка UML 2.x и множества типов диаграмм.
-- Поддержка SysML.
-- Строгая модель, профили, свойства, model explorer.
-- Подходит для model-based engineering.
-
-### Слабые стороны
-
-- Сложный, тяжелый UI.
-- Высокий порог входа.
-- Keyboard-only сценарий не основной.
-- Избыточен для легкого desktop-редактора.
-
-### Что взять
-
-- Разделение модели и представления диаграммы.
-- Model explorer как клавиатурно навигируемое дерево.
+- Разделение модели и представления.
+- Model explorer concept.
 - Строгие свойства элементов.
 
----
+### Не брать в MVP
+
+- Industrial-grade UML scope.
+- SysML.
+- Profiles.
+- Heavy Eclipse-like UX.
+- Полную UML 2.x модель.
 
 ## Modelio
 
-**Тип:** UML/BPMN/ArchiMate/SysML modeling environment.  
-**Open source:** да.
+### Полезно для SchemeOnYou
 
-### Сильные стороны
+- Идея project/model consistency.
+- Несколько диаграмм в одном проекте.
+- Явные типы элементов и связей.
 
-- Поддержка UML, BPMN, ArchiMate, SysML.
-- Ориентация на архитекторов, аналитиков, разработчиков.
-- Проверки консистентности модели.
+### Не брать в MVP
 
-### Слабые стороны
+- BPMN/ArchiMate/SysML scope.
+- Heavy modeling suite UX.
+- Enterprise architecture features.
 
-- Тяжелый modeling suite.
-- UX не сфокусирован на keyboard-only.
-- Для MVP SchemeOnYou функционально избыточен.
+## MVP product decisions from analysis
 
-### Что взять
-
-- Model validation.
-- Поддержка нескольких нотаций в перспективе.
-- Явные типы связей и элементов.
-
----
-
-## Итоговые продуктовые инсайты
-
-1. **Ниша:** keyboard-first UML desktop editor практически не закрыта GUI-инструментами.
-2. **Главный дифференциатор:** все операции должны быть доступны через клавиатуру, не просто иметь shortcut.
-3. **Лучший UX-кандидат:** command palette + структурный список элементов + визуальный canvas + текстовый редактор свойств.
-4. **Формат хранения:** модель должна быть текстовой и diff-friendly.
-5. **Экспорт:** PlantUML обязателен как наиболее близкий developer-friendly стандарт.
+- Product type: sketch editor.
+- Primary UI: visual canvas.
+- Primary control style: keyboard-first.
+- Command entry: command palette with fuzzy search.
+- Editing style: properties panel + inline editing.
+- Storage: Git-friendly text format.
+- Export: SVG only.
+- Scope control: no PlantUML/Mermaid/DDL/IDE/CLI in MVP.

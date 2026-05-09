@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "1.0",
+  "recommendedImplementationOrder": [
+    {
+      "id": "T001",
+      "title": "Create JavaFX project skeleton",
+      "scope": "mvp",
+      "dependsOn": []
+    },
+    {
+      "id": "T002",
+      "title": "Define project/diagram domain model",
+      "scope": "mvp",
+      "dependsOn": ["T001"]
+    },
+    {
+      "id": "T003",
+      "title": "Implement Git-friendly JSON/YAML persistence",
+      "scope": "mvp",
+      "dependsOn": ["T002"]
+    },
+    {
+      "id": "T004",
+      "title": "Implement command layer with undo/redo",
+      "scope": "mvp",
+      "dependsOn": ["T002"]
+    },
+    {
+      "id": "T005",
+      "title": "Implement JavaFX canvas shell",
+      "scope": "mvp",
+      "dependsOn": ["T001", "T002"]
+    },
+    {
+      "id": "T006",
+      "title": "Implement sequence diagram rendering/editing",
+      "scope": "mvp",
+      "dependsOn": ["T004", "T005"]
+    },
+    {
+      "id": "T007",
+      "title": "Implement database tables diagram rendering/editing",
+      "scope": "mvp",
+      "dependsOn": ["T004", "T005"]
+    },
+    {
+      "id": "T008",
+      "title": "Implement command palette and IDE-style shortcuts",
+      "scope": "mvp",
+      "dependsOn": ["T004"]
+    },
+    {
+      "id": "T009",
+      "title": "Implement properties panel / inline editing",
+      "scope": "mvp",
+      "dependsOn": ["T004", "T006", "T007"]
+    },
+    {
+      "id": "T010",
+      "title": "Implement simple hardcoded layout engine",
+      "scope": "mvp",
+      "dependsOn": ["T006", "T007"]
+    },
+    {
+      "id": "T011",
+      "title": "Implement SVG export",
+      "scope": "mvp",
+      "dependsOn": ["T005", "T006", "T007"]
+    },
+    {
+      "id": "T012",
+      "title": "Add JAR launch script",
+      "scope": "mvp",
+      "dependsOn": ["T001"]
+    }
+  ]
+}

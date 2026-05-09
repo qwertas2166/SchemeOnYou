@@ -1,16 +1,29 @@
-# SchemeOnYou — требования
+# SchemeOnYou — requirements
 
-Desktop-приложение для рисования sequence-диаграмм и диаграмм таблиц БД на визуальном canvas. Все операции доступны с клавиатуры; мышь разрешена.
+Desktop sketch editor для sequence-диаграмм и диаграмм таблиц БД.
 
-## Состав
+## MVP summary
 
-- `requirements.md` — структурированный список требований.
-- `open-source-analysis.md` — анализ готовых open source решений.
-- `keyboard-only-analysis.md` — анализ желания разработчика работать только с клавиатуры.
-- `questions.md` — уточняющие вопросы.
+- Java + JavaFX.
+- Linux, Windows, macOS.
+- Визуальный canvas.
+- Keyboard-first UX.
+- Мышь разрешена.
+- Несколько диаграмм в одном проекте.
+- Sequence diagram.
+- Database tables diagram.
+- Git-friendly storage.
+- SVG export.
+- Запуск через Java JAR / script.
+
+## Файлы
+
+- `requirements.md` — итоговые требования MVP и non-MVP.
+- `questions.md` — решённые вопросы и зафиксированные ответы.
+- `keyboard-only-analysis.md` — keyboard-first UX-анализ.
+- `open-source-analysis.md` — выводы из анализа open source решений.
 
 ## Статус
 
-Черновик 0.3.
-
-Требования основаны на первичном описании проекта и сравнении с PlantUML, Mermaid, UMLet, diagrams.net/draw.io, Eclipse Papyrus и Modelio.
+- Версия: черновик 0.4.
+- Открытых вопросов: нет.
