@@ -63,6 +63,7 @@
         <a class="btn" href="assets/schemeonyou-db-ui-mockup.svg">Открыть SVG-макет</a>
         <a class="btn secondary" href="design/final-summary.md">final-summary.md</a>
         <a class="btn secondary" href="design/db-diagram-ui-ux-v07.md">v07 design doc</a>
+        <a class="btn secondary" href="figma-plugin/README.md">Figma plugin source</a>
       </div>
     </section>
 
@@ -70,7 +71,7 @@
       <img src="assets/schemeonyou-db-ui-mockup.svg" alt="SchemeOnYou database diagram editor mockup" />
     </section>
 
-    <p class="note ok"><strong>Figma-ready:</strong> файл <code>docs/assets/schemeonyou-db-ui-mockup.svg</code> можно импортировать в Figma как векторный макет. HTML-страница — публикабельная версия для GitHub Pages без сборки.</p>
+    <p class="note ok"><strong>Figma-ready:</strong> теперь есть два пути: <code>figma-plugin/manifest.json</code> создаёт редактируемые native Figma layers через Plugin API, а <code>docs/assets/schemeonyou-db-ui-mockup.svg</code> остаётся быстрым SVG-import fallback.</p>
 
     <h2>Ключевая UX-модель</h2>
     <div class="grid">
@@ -107,6 +108,14 @@
       <article class="card"><strong>Без crow's foot в MVP</strong><p>Связи показываются простыми directional FK lines; semantic meaning выводится из FK/PK/unique.</p></article>
       <article class="card"><strong>Явные Source/Target chips</strong><p>FK preview всегда показывает, где source column, где target column, плюс локальный <span class="kbd">X</span> Swap.</p></article>
       <article class="card"><strong>Keep target pinned</strong><p>Повторное создание FK — через явный checkbox, выключенный по умолчанию, без скрытого repeat mode.</p></article>
+    </div>
+
+    <h2>Figma integration source</h2>
+    <div class="card">
+      <strong>Native Figma plugin</strong>
+      <p>В репозитории добавлен <code>figma-plugin/</code>. Он использует Figma Plugin API и создаёт макет как редактируемые слои: frames, text layers, table cards, FK lines, source/target chips, command sheet и footer context line.</p>
+      <p>Как запустить: <code>Plugins → Development → Import plugin from manifest…</code>, выбрать <code>figma-plugin/manifest.json</code>, затем запустить <code>SchemeOnYou DB UI Mockup</code>.</p>
+      <p>Для просмотра через Pages исходники продублированы в <a href="figma-plugin/README.md"><code>docs/figma-plugin/</code></a>.</p>
     </div>
 
     <h2>Публикация</h2>
