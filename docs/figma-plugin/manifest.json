@@ -1,0 +1,8 @@
+{
+  "name": "SchemeOnYou DB UI Mockup",
+  "id": "schemeonyou-db-ui-mockup",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page"
+}

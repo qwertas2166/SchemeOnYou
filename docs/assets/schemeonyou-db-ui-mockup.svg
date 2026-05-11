@@ -1,0 +1,174 @@
+<svg width="1440" height="1040" viewBox="0 0 1440 1040" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1440" y2="1040" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="canvas" x1="260" y1="130" x2="1090" y2="850" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#EEF2FF"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#020617" flood-opacity="0.22"/>
+    </filter>
+    <marker id="arrow" markerWidth="13" markerHeight="13" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#475569"/>
+    </marker>
+    <style>
+      .ui { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .mono { font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
+      .title { font-size: 30px; font-weight: 800; fill: #F8FAFC; }
+      .sub { font-size: 15px; fill: #CBD5E1; }
+      .label { font-size: 13px; fill: #64748B; font-weight: 700; letter-spacing: .04em; }
+      .small { font-size: 13px; fill: #475569; }
+      .tiny { font-size: 11px; fill: #64748B; }
+      .panel-title { font-size: 14px; fill: #E2E8F0; font-weight: 700; }
+      .panel-muted { font-size: 12px; fill: #94A3B8; }
+      .table-title { font-size: 16px; font-weight: 800; fill:#0F172A; }
+      .col { font-size: 13px; fill:#334155; }
+      .key { font-size: 12px; fill:#0F172A; font-weight:700; }
+      .chip { font-size: 12px; fill:#1E293B; font-weight:700; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="1040" fill="url(#bg)"/>
+  <g class="ui">
+    <text x="64" y="64" class="title">SchemeOnYou · DB diagram editor mockup</text>
+    <text x="64" y="92" class="sub">Keyboard-first JavaFX canvas · final design based on db-diagram-ui-ux-v07 / final-summary.md</text>
+
+    <!-- App shell -->
+    <rect x="64" y="120" width="1312" height="820" rx="28" fill="#0B1220" filter="url(#shadow)"/>
+    <rect x="64" y="120" width="1312" height="820" rx="28" stroke="#334155"/>
+
+    <!-- Top bar -->
+    <rect x="88" y="144" width="1264" height="58" rx="16" fill="#111827" stroke="#1F2937"/>
+    <circle cx="116" cy="173" r="7" fill="#EF4444"/>
+    <circle cx="138" cy="173" r="7" fill="#F59E0B"/>
+    <circle cx="160" cy="173" r="7" fill="#22C55E"/>
+    <text x="192" y="178" fill="#E5E7EB" font-size="15" font-weight="800">SchemeOnYou</text>
+    <text x="326" y="178" fill="#94A3B8" font-size="13">Project: Shop schema · Diagram: DB overview · Saved</text>
+    <rect x="1110" y="157" width="102" height="32" rx="10" fill="#172033" stroke="#334155"/>
+    <text x="1135" y="178" class="panel-muted">Zoom 100%</text>
+    <rect x="1224" y="157" width="102" height="32" rx="10" fill="#1D4ED8"/>
+    <text x="1243" y="178" fill="#EFF6FF" font-size="12" font-weight="800">Space help</text>
+
+    <!-- Left tree -->
+    <rect x="88" y="220" width="210" height="600" rx="18" fill="#111827" stroke="#253244"/>
+    <text x="108" y="252" class="panel-title">Project tree</text>
+    <text x="108" y="282" class="panel-muted">DIAGRAMS</text>
+    <rect x="104" y="294" width="178" height="34" rx="9" fill="#1D4ED8" opacity=".95"/>
+    <text x="118" y="316" fill="#EFF6FF" font-size="13" font-weight="700">DB overview</text>
+    <text x="118" y="354" fill="#CBD5E1" font-size="13">Sequence: checkout</text>
+    <text x="108" y="396" class="panel-muted">TABLES</text>
+    <text x="118" y="426" fill="#CBD5E1" font-size="13">users</text>
+    <text x="118" y="454" fill="#CBD5E1" font-size="13">orders</text>
+    <text x="118" y="482" fill="#CBD5E1" font-size="13">roles</text>
+    <text x="118" y="510" fill="#CBD5E1" font-size="13">user_roles</text>
+    <rect x="108" y="746" width="156" height="42" rx="12" fill="#0F172A" stroke="#334155"/>
+    <text x="126" y="772" class="panel-muted">F6 next area</text>
+
+    <!-- Canvas -->
+    <rect x="316" y="220" width="820" height="600" rx="20" fill="url(#canvas)" stroke="#CBD5E1"/>
+    <path d="M340 258 H1110 M340 306 H1110 M340 354 H1110 M340 402 H1110 M340 450 H1110 M340 498 H1110 M340 546 H1110 M340 594 H1110 M340 642 H1110 M340 690 H1110 M340 738 H1110" stroke="#E2E8F0"/>
+    <path d="M364 244 V796 M412 244 V796 M460 244 V796 M508 244 V796 M556 244 V796 M604 244 V796 M652 244 V796 M700 244 V796 M748 244 V796 M796 244 V796 M844 244 V796 M892 244 V796 M940 244 V796 M988 244 V796 M1036 244 V796 M1084 244 V796" stroke="#E2E8F0"/>
+    <text x="340" y="252" class="label">CANVAS</text>
+
+    <!-- Edges behind tables -->
+    <path d="M584 389 C650 389 664 392 714 392" stroke="#475569" stroke-width="2.4" marker-end="url(#arrow)"/>
+    <path d="M584 484 C666 502 708 536 762 583" stroke="#475569" stroke-width="2.4" marker-end="url(#arrow)"/>
+    <path d="M884 388 C908 438 908 500 884 560" stroke="#64748B" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#arrow)"/>
+    <path d="M556 618 C608 618 670 619 762 619" stroke="#475569" stroke-width="2.4" marker-end="url(#arrow)"/>
+
+    <!-- users table -->
+    <g filter="url(#shadow)">
+      <rect x="388" y="304" width="196" height="184" rx="18" fill="#FFFFFF" stroke="#2563EB" stroke-width="3"/>
+      <rect x="388" y="304" width="196" height="46" rx="18" fill="#DBEAFE"/>
+      <path d="M388 333 H584" stroke="#BFDBFE"/>
+      <text x="408" y="333" class="table-title">users</text>
+      <rect x="528" y="315" width="38" height="20" rx="10" fill="#FEF3C7"/>
+      <text x="538" y="329" fill="#92400E" font-size="11" font-weight="800">PIN</text>
+      <text x="410" y="372" class="col">🔑 id</text><text x="512" y="372" class="col mono">uuid</text>
+      <text x="410" y="402" class="col">◇ email</text><text x="512" y="402" class="col mono">text!</text>
+      <text x="410" y="432" class="col">created_at</text><text x="512" y="432" class="col mono">ts!</text>
+      <rect x="402" y="452" width="166" height="22" rx="8" fill="#EEF2FF"/>
+      <text x="414" y="468" fill="#3730A3" font-size="12" font-weight="700">selected target users.id</text>
+    </g>
+
+    <!-- orders -->
+    <g filter="url(#shadow)">
+      <rect x="714" y="300" width="206" height="186" rx="18" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+      <rect x="714" y="300" width="206" height="46" rx="18" fill="#F1F5F9"/>
+      <text x="734" y="329" class="table-title">orders</text>
+      <text x="736" y="372" class="col">🔑 id</text><text x="850" y="372" class="col mono">uuid</text>
+      <rect x="728" y="382" width="176" height="28" rx="9" fill="#DCFCE7" stroke="#22C55E"/>
+      <text x="738" y="401" fill="#166534" font-size="13">→ user_id</text><text x="850" y="401" fill="#166534" font-size="13" class="mono">uuid!</text>
+      <text x="736" y="432" class="col">total</text><text x="850" y="432" class="col mono">decimal</text>
+      <text x="736" y="462" class="col">created_at</text><text x="850" y="462" class="col mono">ts!</text>
+    </g>
+
+    <!-- roles -->
+    <g filter="url(#shadow)">
+      <rect x="388" y="560" width="168" height="120" rx="18" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+      <rect x="388" y="560" width="168" height="44" rx="18" fill="#F1F5F9"/>
+      <text x="408" y="588" class="table-title">roles</text>
+      <text x="410" y="630" class="col">🔑 id</text><text x="500" y="630" class="col mono">uuid</text>
+      <text x="410" y="658" class="col">name</text><text x="500" y="658" class="col mono">text!</text>
+    </g>
+
+    <!-- user_roles -->
+    <g filter="url(#shadow)">
+      <rect x="762" y="552" width="218" height="158" rx="18" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+      <rect x="762" y="552" width="218" height="44" rx="18" fill="#F1F5F9"/>
+      <text x="782" y="580" class="table-title">user_roles</text>
+      <text x="784" y="622" class="col">🔑→ user_id</text><text x="900" y="622" class="col mono">uuid</text>
+      <text x="784" y="652" class="col">🔑→ role_id</text><text x="900" y="652" class="col mono">uuid</text>
+      <rect x="784" y="672" width="172" height="24" rx="8" fill="#F8FAFC" stroke="#E2E8F0"/>
+      <text x="798" y="689" class="tiny">composite PK marker</text>
+    </g>
+
+    <!-- Command sheet -->
+    <g filter="url(#shadow)">
+      <rect x="432" y="704" width="330" height="92" rx="18" fill="#0F172A" stroke="#2563EB"/>
+      <text x="454" y="730" fill="#E2E8F0" font-size="14" font-weight="800">A · Add…</text>
+      <rect x="454" y="744" width="60" height="30" rx="9" fill="#DBEAFE"/>
+      <text x="476" y="764" class="key">T</text><text x="522" y="764" fill="#CBD5E1" font-size="13">Table</text>
+      <rect x="600" y="744" width="60" height="30" rx="9" fill="#DCFCE7"/>
+      <text x="622" y="764" class="key">F</text><text x="668" y="764" fill="#CBD5E1" font-size="13">Foreign key</text>
+    </g>
+
+    <!-- Inspector -->
+    <rect x="1154" y="220" width="198" height="600" rx="18" fill="#111827" stroke="#253244"/>
+    <text x="1174" y="252" class="panel-title">Inspector</text>
+    <text x="1174" y="284" class="panel-muted">SELECTED</text>
+    <rect x="1170" y="298" width="166" height="76" rx="14" fill="#172033" stroke="#334155"/>
+    <text x="1186" y="324" fill="#E2E8F0" font-size="13" font-weight="800">orders.user_id</text>
+    <text x="1186" y="348" class="panel-muted">Column · FK source</text>
+    <text x="1174" y="410" class="panel-muted">FOREIGN KEY PREVIEW</text>
+    <rect x="1170" y="424" width="166" height="156" rx="14" fill="#0F172A" stroke="#334155"/>
+    <text x="1186" y="452" fill="#CBD5E1" font-size="12">Source</text>
+    <rect x="1184" y="462" width="126" height="24" rx="8" fill="#DCFCE7"/>
+    <text x="1194" y="479" fill="#166534" font-size="12" font-weight="800">orders.user_id</text>
+    <text x="1186" y="510" fill="#CBD5E1" font-size="12">Target</text>
+    <rect x="1184" y="520" width="96" height="24" rx="8" fill="#DBEAFE"/>
+    <text x="1194" y="537" fill="#1D4ED8" font-size="12" font-weight="800">users.id</text>
+    <text x="1186" y="566" class="panel-muted">X Swap · Enter create</text>
+    <text x="1174" y="628" class="panel-muted">QUICK ACTIONS</text>
+    <rect x="1170" y="642" width="166" height="36" rx="12" fill="#1D4ED8"/>
+    <text x="1192" y="665" fill="#EFF6FF" font-size="12" font-weight="800">Create FK</text>
+    <rect x="1170" y="690" width="166" height="36" rx="12" fill="#172033" stroke="#334155"/>
+    <text x="1192" y="713" fill="#CBD5E1" font-size="12" font-weight="800">Keep pinned: off</text>
+
+    <!-- Footer -->
+    <rect x="88" y="838" width="1264" height="78" rx="18" fill="#111827" stroke="#253244"/>
+    <rect x="108" y="854" width="1224" height="28" rx="10" fill="#172033"/>
+    <text x="126" y="873" fill="#FDE68A" font-size="13" font-weight="800">Context:</text>
+    <text x="196" y="873" fill="#E2E8F0" font-size="13">Pinned target users.id · select source column · Space A F · Space U unpin</text>
+    <text x="126" y="902" fill="#94A3B8" font-size="13">Status: Canvas · Enter edit · Space commands · F1 help · F6 next area</text>
+
+    <!-- Side annotation cards -->
+    <rect x="64" y="966" width="278" height="44" rx="14" fill="#172033" stroke="#334155"/>
+    <text x="84" y="993" fill="#CBD5E1" font-size="13">Figma import: use this SVG as vector source</text>
+    <rect x="358" y="966" width="394" height="44" rx="14" fill="#172033" stroke="#334155"/>
+    <text x="378" y="993" fill="#CBD5E1" font-size="13">GitHub Pages: static HTML/CSS/SVG, no build step</text>
+  </g>
+</svg>
