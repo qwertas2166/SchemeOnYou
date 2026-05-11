@@ -1,7 +1,6 @@
 # SchemeOnYou DB UI Mockup — native Figma plugin
 
-Primary mockup source now lives in `design/mockup/figma-plugin/` together with the GitHub Pages preview.
-This root copy is kept for convenience and mirrors the same native Figma layout code.
+This is the primary Figma source for the SchemeOnYou DB diagram editor mockup.
 
 It creates **editable native Figma layers**, not a flat SVG import:
 
@@ -11,14 +10,17 @@ It creates **editable native Figma layers**, not a flat SVG import:
 - directional FK lines and command sheet;
 - separate design-spec frames for shortcuts, UX states and tokens.
 
-## How to run
+Based on:
 
-Preferred path:
+- `../design/final-summary.md`
+- `../design/db-diagram-ui-ux-v07.md`
+
+## How to run
 
 1. Open Figma desktop or browser.
 2. Open any design file.
 3. Go to **Plugins → Development → Import plugin from manifest…**.
-4. Select `design/mockup/figma-plugin/manifest.json`.
-5. Run **SchemeOnYou DB UI Mockup**.
+4. Select `design/mockup/figma-plugin/manifest.json` from this repository.
+5. Run **Plugins → Development → SchemeOnYou DB UI Mockup**.
 
-Convenience path: import `figma-plugin/manifest.json` from the repository root.
+The plugin will create a page named `SchemeOnYou DB UI Mockup` and a root frame named `SchemeOnYou DB diagram editor — native editable mockup`.
