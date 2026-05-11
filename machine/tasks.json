@@ -1,77 +1,193 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
+  "updatedAt": "2026-05-11T13:45:00+03:00",
+  "sourceState": {
+    "requirements": "requirements/requirements.md draft 0.4 plus resolved questions",
+    "design": "design/db-diagram-ui-ux-v07.md final recommendation for DB diagram UX",
+    "machineCurrentPlan": "machine/current/plan.md"
+  },
   "recommendedImplementationOrder": [
     {
-      "id": "T001",
-      "title": "Create JavaFX project skeleton",
+      "id": "P0",
+      "title": "Project foundation",
       "scope": "mvp",
+      "goal": "Create Java/JavaFX buildable app skeleton and launch path.",
+      "tasks": [
+        "Create JavaFX project skeleton",
+        "Add JAR/shell launch script",
+        "Define package/module layout"
+      ],
       "dependsOn": []
     },
     {
-      "id": "T002",
-      "title": "Define project/diagram domain model",
+      "id": "P1",
+      "title": "Core domain and persistence",
       "scope": "mvp",
-      "dependsOn": ["T001"]
+      "goal": "Represent projects, diagrams, DB/sequence models and deterministic text storage.",
+      "tasks": [
+        "Define project/diagram domain model",
+        "Define canvas/layout state",
+        "Implement Git-friendly JSON/YAML persistence",
+        "Add deterministic serialization/version field"
+      ],
+      "dependsOn": [
+        "P0"
+      ]
     },
     {
-      "id": "T003",
-      "title": "Implement Git-friendly JSON/YAML persistence",
+      "id": "P2",
+      "title": "Command layer and safety",
       "scope": "mvp",
-      "dependsOn": ["T002"]
+      "goal": "Route all mutations through testable undo-safe commands.",
+      "tasks": [
+        "Implement command interface",
+        "Implement undo/redo stack",
+        "Add delete/bulk-delete confirmation model",
+        "Add command invocation metadata for keyboard/palette"
+      ],
+      "dependsOn": [
+        "P1"
+      ]
     },
     {
-      "id": "T004",
-      "title": "Implement command layer with undo/redo",
+      "id": "P3",
+      "title": "JavaFX application shell",
       "scope": "mvp",
-      "dependsOn": ["T002"]
+      "goal": "Build top bar, project tree, canvas, inspector, footer/context/status surfaces.",
+      "tasks": [
+        "Implement app shell",
+        "Implement canvas shell",
+        "Implement inspector/properties panel",
+        "Implement single context line and status hint"
+      ],
+      "dependsOn": [
+        "P0",
+        "P1",
+        "P2"
+      ]
     },
     {
-      "id": "T005",
-      "title": "Implement JavaFX canvas shell",
+      "id": "P4",
+      "title": "DB diagram v07 UX",
       "scope": "mvp",
-      "dependsOn": ["T001", "T002"]
+      "goal": "Implement latest DB diagram design from design/db-diagram-ui-ux-v07.md.",
+      "tasks": [
+        "Table/column rendering with selection depth",
+        "Directional FK lines and FK edge selection",
+        "Relation pin with visible badge/context state",
+        "FK Source/Target preview with local Swap",
+        "Keep target pinned checkbox default off",
+        "Join table as undoable compound action",
+        "Progressive Space command sheet",
+        "F6/Shift+F6 major area traversal",
+        "F1 shortcut overlay/onboarding"
+      ],
+      "dependsOn": [
+        "P2",
+        "P3"
+      ]
     },
     {
-      "id": "T006",
-      "title": "Implement sequence diagram rendering/editing",
+      "id": "P5",
+      "title": "Sequence diagram MVP",
       "scope": "mvp",
-      "dependsOn": ["T004", "T005"]
+      "goal": "Implement participant/lifeline/message/activation model and editing.",
+      "tasks": [
+        "Participant rendering/editing",
+        "Message rendering/editing",
+        "Activation visualization",
+        "Sequence auto-layout"
+      ],
+      "dependsOn": [
+        "P2",
+        "P3"
+      ]
     },
     {
-      "id": "T007",
-      "title": "Implement database tables diagram rendering/editing",
+      "id": "P6",
+      "title": "Global command and navigation model",
       "scope": "mvp",
-      "dependsOn": ["T004", "T005"]
+      "goal": "Expose MVP actions through command palette and hardcoded shortcuts.",
+      "tasks": [
+        "Command palette with fuzzy search",
+        "Find element",
+        "Global shortcuts Ctrl+S/Ctrl+O/Ctrl+F/Ctrl+Z/redo",
+        "Properties editing and inline rename"
+      ],
+      "dependsOn": [
+        "P2",
+        "P3",
+        "P4",
+        "P5"
+      ]
     },
     {
-      "id": "T008",
-      "title": "Implement command palette and IDE-style shortcuts",
+      "id": "P7",
+      "title": "Layout and export",
       "scope": "mvp",
-      "dependsOn": ["T004"]
+      "goal": "Provide predictable auto-layout and SVG export.",
+      "tasks": [
+        "Simple deterministic layout engine",
+        "Layout whole diagram",
+        "Layout selected cluster for DB diagram",
+        "SVG export for sequence and DB diagrams"
+      ],
+      "dependsOn": [
+        "P4",
+        "P5"
+      ]
     },
     {
-      "id": "T009",
-      "title": "Implement properties panel / inline editing",
+      "id": "P8",
+      "title": "Validation and consistency hardening",
       "scope": "mvp",
-      "dependsOn": ["T004", "T006", "T007"]
+      "goal": "Make model, UX and safety rules consistent and testable.",
+      "tasks": [
+        "Validate no mouse-only MVP paths",
+        "Validate context line priority ordering",
+        "Validate FK inference/type mismatch warnings",
+        "Validate Git-friendly diffs",
+        "Regression tests for undo-safe compound actions"
+      ],
+      "dependsOn": [
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ]
+    }
+  ],
+  "currentAnalysisTasks": [
+    {
+      "id": "A001",
+      "title": "Inventory requirements/design sources",
+      "status": "done"
     },
     {
-      "id": "T010",
-      "title": "Implement simple hardcoded layout engine",
-      "scope": "mvp",
-      "dependsOn": ["T006", "T007"]
+      "id": "A002",
+      "title": "Update machine/current local plan",
+      "status": "done"
     },
     {
-      "id": "T011",
-      "title": "Implement SVG export",
-      "scope": "mvp",
-      "dependsOn": ["T005", "T006", "T007"]
+      "id": "A003",
+      "title": "Encode DB diagram v07 design in machine/design.json",
+      "status": "done"
     },
     {
-      "id": "T012",
-      "title": "Add JAR launch script",
-      "scope": "mvp",
-      "dependsOn": ["T001"]
+      "id": "A004",
+      "title": "Update machine/requirements.json with design refinements",
+      "status": "done"
+    },
+    {
+      "id": "A005",
+      "title": "Update machine/tasks.json with implementation phases",
+      "status": "done"
+    },
+    {
+      "id": "A006",
+      "title": "Run 13:45 consistency and contradiction review",
+      "status": "done",
+      "result": "JSON valid; machine state matches requirements/design with one documented shortcut refinement (Tab vs F6). No corrective content changes required beyond marking review complete."
     }
   ]
 }

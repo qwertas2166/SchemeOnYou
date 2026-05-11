@@ -1,13 +1,15 @@
 # AI Brief: SchemeOnYou
 
+Updated: 2026-05-11 13:32 MSK
+
 ## Product
 
-- Desktop sketch editor.
+- Desktop sketch editor for developers.
 - Java + JavaFX.
 - Visual canvas first.
 - Keyboard-first, not keyboard-only.
 - Mouse allowed, but all MVP actions must work from keyboard.
-- MVP is not a strict UML/modeling suite.
+- MVP is a fast sketch editor, not a strict UML/modeling suite.
 
 ## MVP includes
 
@@ -17,10 +19,10 @@
 - Database tables diagram.
 - Command palette with fuzzy search.
 - IDE-style hardcoded shortcuts.
-- Simple hardcoded layout.
+- Simple deterministic layout.
 - Project save/open.
 - Git-friendly text storage.
-- Undo/redo.
+- Undo/redo for mutating operations.
 - SVG export.
 - Java JAR/script launch.
 
@@ -31,7 +33,7 @@
 - PlantUML/Mermaid import/export.
 - SQL DDL import/export.
 - Sequence combined fragments: alt/opt/loop/par.
-- Crow's foot ERD.
+- Crow's foot ERD notation.
 - Required manual keyboard positioning.
 - User-configurable keymap/layout.
 - Vim-like mode.
@@ -39,14 +41,33 @@
 - CLI render/export.
 - PNG/PDF export.
 - Native installers.
+- Full database modeling-suite constraint editor.
 - Heavy dependencies without explicit approval.
+
+## Current DB diagram design
+
+Canonical design: `design/db-diagram-ui-ux-v07.md`.
+
+Key decisions:
+
+- Main screen: top bar, project tree, canvas, inspector/properties panel, single context line + status hint.
+- `F6` / `Shift+F6` move between major areas.
+- `Tab` / `Shift+Tab` traverse inside panels/dialogs/pickers, not canvas objects.
+- Canvas navigation uses arrows, selection depth, `Enter` to enter table columns, `Esc` to return to table depth.
+- `Space` opens progressive command sheet on canvas.
+- Main DB chords: `Space A T`, `Space A C`, `Space A F`, `Space A J`, `Space P`, `Space U`, `Space E`, `Space G T/G S`, `Space L D/L S`.
+- Relation pin is explicit and visible; `Keep target pinned after create` exists only as an FK-preview checkbox and defaults off.
+- FK creation uses explicit Source/Target role chips and local `X Swap` while preview is visible.
+- Relation meaning is derived from FK + PK/unique/composite constraints, not independent editable relationship metadata.
+- Join table is one undoable compound action.
+- Visual notation stays simple: table cards, markers, directional FK lines; no crow's foot notation in MVP.
 
 ## Core architecture
 
 - Separate project model, diagram model, canvas/layout state, UI state.
 - All mutations go through command layer.
-- Command layer supports keyboard invocation, undo/redo, tests, future macros.
-- Layout engine is separate; MVP implementation can be simple/hardcoded.
+- Command layer supports keyboard invocation, undo/redo, tests, future macros/scripting.
+- Layout engine is separate; MVP implementation can be simple/deterministic.
 
 ## Storage
 
@@ -57,15 +78,24 @@
 - Include version, metadata, diagrams, model, canvas state/layout.
 - Must be Git-friendly.
 
-## UX rules
+## UX and safety rules
 
 - Canvas is primary workspace.
-- Command palette is primary command entry.
-- Properties panel/inline editor for selected element.
-- Selection/focus must be visually obvious.
+- Command palette is global command entry; Space command sheet is fast DB diagram command entry.
+- Properties panel/inline editor edits selected element.
+- Selection, focus, relation pin, FK direction and Source/Target roles must be visually obvious.
 - No mouse-only actions for MVP features.
-- Destructive actions must be undo-safe; bulk delete asks confirmation.
+- Destructive and compound actions must be undo-safe.
+- Bulk delete and relation-affecting delete require confirmation.
+- `Enter` only performs a visible safe default action; ambiguous cases open an action menu.
 
 ## Open questions
 
-- None currently.
+- None currently recorded.
+
+## Machine files
+
+- `machine/requirements.json` — requirements + design refinements.
+- `machine/design.json` — DB diagram v07 structured design state.
+- `machine/tasks.json` — phased implementation plan.
+- `machine/current/` — active analysis plan/progress/check log.

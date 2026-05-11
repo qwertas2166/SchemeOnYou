@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "1.0",
+  "updatedAt": "2026-05-11T13:31:00+03:00",
+  "project": "SchemeOnYou",
+  "scope": "database tables diagram UI/UX for keyboard-first JavaFX desktop editor",
+  "latestVersion": "v07",
+  "recommendedSource": "design/db-diagram-ui-ux-v07.md",
+  "summarySource": "design/final-summary.md",
+  "revisionHistory": [
+    {
+      "version": "v01",
+      "focus": "Initial keyboard-first canvas, table/column/FK/join table, command palette, simple auto-layout."
+    },
+    {
+      "version": "v02",
+      "focus": "Resolve Tab and bare-letter shortcut conflicts with F6 and Space command mode."
+    },
+    {
+      "version": "v03",
+      "focus": "Add table/column selection depth and derived relation semantics."
+    },
+    {
+      "version": "v04",
+      "focus": "Add two-object workflow mark, FK edge selection, stricter Enter behavior."
+    },
+    {
+      "version": "v05",
+      "focus": "Replace generic mark with Pin for relation and add compound-action previews."
+    },
+    {
+      "version": "v06",
+      "focus": "Use context action bar, FK Source/Target chips, local Swap, safe repeat feedback."
+    },
+    {
+      "version": "v07",
+      "focus": "Finalize single context line priorities, progressive Space command sheet, explicit Keep target pinned option."
+    }
+  ],
+  "mainScreen": {
+    "areas": [
+      "top_bar",
+      "project_tree",
+      "canvas",
+      "inspector_properties_panel",
+      "single_context_line",
+      "status_hint"
+    ],
+    "transientSurfaces": [
+      "command_palette",
+      "progressive_space_command_sheet",
+      "pickers",
+      "dialogs"
+    ],
+    "primaryWorkspace": "canvas"
+  },
+  "contextLinePriority": [
+    "blocking_validation_or_confirmation",
+    "active_preview_or_picker_instruction",
+    "relation_pin_state",
+    "recent_undoable_result",
+    "selection_specific_tip"
+  ],
+  "focusAndSelection": {
+    "majorAreaTraversal": {
+      "next": "F6",
+      "previous": "Shift+F6"
+    },
+    "tabUsage": "Only inside focused panel, dialog, picker, or command sheet.",
+    "canvasObjectNavigation": "Arrow keys, selection depth, Enter to enter selected table columns, Esc to leave column depth.",
+    "visibleState": [
+      "canvas_focus_ring",
+      "primary_selection",
+      "optional_relation_pin_badge",
+      "selected_fk_edge_highlight",
+      "status_breadcrumb"
+    ]
+  },
+  "spaceCommandSheet": {
+    "open": "Space on canvas when no editor/dialog is active",
+    "behavior": [
+      "shows current chord prefix",
+      "shows valid next keys",
+      "Backspace removes last chord key",
+      "Esc closes",
+      "invalid keys show inline error"
+    ],
+    "chords": {
+      "Space A T": "add_table",
+      "Space A C": "add_column",
+      "Space A F": "add_foreign_key",
+      "Space A J": "add_join_table",
+      "Space P": "pin_relation",
+      "Space U": "unpin_relation",
+      "Space E": "select_fk_edge",
+      "Space G T": "go_target",
+      "Space G S": "go_source",
+      "Space L D": "layout_whole_diagram",
+      "Space L S": "layout_selected_cluster"
+    }
+  },
+  "databaseDiagramModel": {
+    "elements": [
+      "table",
+      "column",
+      "primary_key",
+      "foreign_key",
+      "unique_or_composite_constraint_marker"
+    ],
+    "relationSemantics": "Derived from FK/PK/unique/composite constraints.",
+    "mvpVisualNotation": "Simple table cards, PK/not-null/unique/FK/pin markers, directional FK lines; no crow foot notation.",
+    "joinTable": "Created as one undoable compound action: table, two columns, composite PK/unique marker, two FK edges."
+  },
+  "foreignKeyFlow": {
+    "roles": [
+      "source_column_stores_fk",
+      "target_column_is_referenced"
+    ],
+    "previewRequired": true,
+    "roleChips": [
+      "Source",
+      "Target"
+    ],
+    "localSwapShortcut": "X only while visible preview shows Swap",
+    "keepTargetPinned": {
+      "control": "checkbox in FK preview",
+      "default": false,
+      "purpose": "Repeated FK creation without hidden repeat mode"
+    }
+  },
+  "safety": {
+    "undoSafeMutations": true,
+    "previewRequiredFor": [
+      "foreign_key_creation",
+      "join_table_creation",
+      "relation_affecting_delete",
+      "bulk_delete"
+    ],
+    "enterRule": "Enter only performs a visible safe default action; ambiguous cases open an action menu.",
+    "destructiveActions": "Require confirmation when bulk or relation-affecting."
+  },
+  "mvpExclusionsPreserved": [
+    "SQL DDL import/export",
+    "crow foot notation",
+    "required manual keyboard positioning",
+    "full constraint editor",
+    "user-configurable keymap",
+    "user-configurable auto-layout"
+  ],
+  "openRisks": [
+    "Progressive command sheet adds UI complexity and needs onboarding.",
+    "Keep target pinned must stay default off.",
+    "Single context line priority must be implemented deterministically.",
+    "Selected, pinned, FK direction and Source/Target roles must be visually clear.",
+    "Selection depth and relation pin require F1/help onboarding.",
+    "FK inference and type mismatch warnings must be transparent."
+  ]
+}

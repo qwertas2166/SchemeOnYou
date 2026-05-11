@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "project": {
     "name": "SchemeOnYou",
     "type": "desktop sketch editor",
@@ -54,7 +54,11 @@
       "heavy dependencies without explicit approval"
     ]
   },
-  "platforms": ["linux", "windows", "macos"],
+  "platforms": [
+    "linux",
+    "windows",
+    "macos"
+  ],
   "technology": {
     "language": "Java",
     "ui": "JavaFX",
@@ -66,18 +70,64 @@
   },
   "diagrams": {
     "sequence": {
-      "elements": ["participant", "lifeline", "message", "activation"],
-      "participantTypes": ["actor", "service", "database", "external_system"],
-      "messageTypes": ["sync", "async", "return", "self_call"],
-      "messageProperties": ["source", "target", "label", "order", "type"],
-      "excludedMvp": ["combined_fragments_alt_opt_loop_par"]
+      "elements": [
+        "participant",
+        "lifeline",
+        "message",
+        "activation"
+      ],
+      "participantTypes": [
+        "actor",
+        "service",
+        "database",
+        "external_system"
+      ],
+      "messageTypes": [
+        "sync",
+        "async",
+        "return",
+        "self_call"
+      ],
+      "messageProperties": [
+        "source",
+        "target",
+        "label",
+        "order",
+        "type"
+      ],
+      "excludedMvp": [
+        "combined_fragments_alt_opt_loop_par"
+      ]
     },
     "databaseTables": {
-      "elements": ["table", "column", "primary_key", "foreign_key"],
-      "tableProperties": ["name", "columns"],
-      "columnProperties": ["name", "type", "nullable", "primary_key_flag", "foreign_key_reference"],
-      "relations": ["foreign_key", "one_to_one", "one_to_many", "many_to_many_via_join_table"],
-      "excludedMvp": ["crow_foot_erd", "sql_ddl_import", "sql_ddl_export"]
+      "elements": [
+        "table",
+        "column",
+        "primary_key",
+        "foreign_key"
+      ],
+      "tableProperties": [
+        "name",
+        "columns"
+      ],
+      "columnProperties": [
+        "name",
+        "type",
+        "nullable",
+        "primary_key_flag",
+        "foreign_key_reference"
+      ],
+      "relations": [
+        "foreign_key",
+        "one_to_one",
+        "one_to_many",
+        "many_to_many_via_join_table"
+      ],
+      "excludedMvp": [
+        "crow_foot_erd",
+        "sql_ddl_import",
+        "sql_ddl_export"
+      ]
     }
   },
   "ux": {
@@ -90,7 +140,13 @@
       "selection and focus must be visible",
       "mutating operations are undo-safe"
     ],
-    "focusAreas": ["project_diagram_list", "canvas", "properties_panel", "command_palette"],
+    "focusAreas": [
+      "project_tree",
+      "canvas",
+      "inspector_properties_panel",
+      "command_palette",
+      "transient_dialogs_pickers"
+    ],
     "keyboardOperations": [
       "new_project",
       "open_project",
@@ -125,22 +181,39 @@
       "Show shortcuts"
     ],
     "shortcuts": {
-      "command_palette": ["Ctrl+K", "Ctrl+Shift+P"],
+      "command_palette": [
+        "Ctrl+K",
+        "Ctrl+Shift+P"
+      ],
       "save": "Ctrl+S",
       "open": "Ctrl+O",
       "new": "Ctrl+N",
       "find": "Ctrl+F",
       "undo": "Ctrl+Z",
-      "redo": ["Ctrl+Y", "Ctrl+Shift+Z"],
+      "redo": [
+        "Ctrl+Y",
+        "Ctrl+Shift+Z"
+      ],
       "next_focus": "Tab",
       "previous_focus": "Shift+Tab",
       "edit_or_confirm": "Enter",
       "cancel_or_back": "Esc",
       "delete_selected": "Delete"
+    },
+    "databaseDiagramShortcutRefinement": {
+      "major_area_next": "F6",
+      "major_area_previous": "Shift+F6",
+      "in_panel_traversal_next": "Tab",
+      "in_panel_traversal_previous": "Shift+Tab",
+      "canvas_command_sheet": "Space",
+      "reason": "Avoid collision between focus traversal, canvas object navigation, and text input."
     }
   },
   "storage": {
-    "preferredFormats": ["JSON", "YAML"],
+    "preferredFormats": [
+      "JSON",
+      "YAML"
+    ],
     "requirements": [
       "plain text",
       "readable enough for debugging",
@@ -155,14 +228,32 @@
     "gitFriendly": true
   },
   "export": {
-    "mvp": ["SVG"],
-    "postMvp": ["PNG", "PDF", "PlantUML", "Mermaid", "SQL DDL"]
+    "mvp": [
+      "SVG"
+    ],
+    "postMvp": [
+      "PNG",
+      "PDF",
+      "PlantUML",
+      "Mermaid",
+      "SQL DDL"
+    ]
   },
   "architecture": {
-    "requiredSeparation": ["project_model", "diagram_model", "canvas_layout_state", "ui_state"],
+    "requiredSeparation": [
+      "project_model",
+      "diagram_model",
+      "canvas_layout_state",
+      "ui_state"
+    ],
     "commandLayer": {
       "required": true,
-      "responsibilities": ["keyboard_invocation", "undo_redo", "testability", "future_macros_scripting"]
+      "responsibilities": [
+        "keyboard_invocation",
+        "undo_redo",
+        "testability",
+        "future_macros_scripting"
+      ]
     },
     "layoutEngine": {
       "separateComponent": true,
@@ -187,5 +278,29 @@
       "no silent destructive actions"
     ]
   },
-  "openQuestions": []
+  "openQuestions": [],
+  "sourceStatus": {
+    "updatedAt": "2026-05-11T13:31:00+03:00",
+    "requirementsVersion": "draft 0.4",
+    "openQuestions": 0,
+    "sources": [
+      "requirements/requirements.md",
+      "requirements/questions.md",
+      "requirements/keyboard-only-analysis.md",
+      "requirements/open-source-analysis.md",
+      "design/final-summary.md",
+      "design/db-diagram-ui-ux-v07.md"
+    ]
+  },
+  "designRefinements": {
+    "databaseDiagramUxLatest": "design/db-diagram-ui-ux-v07.md",
+    "shortcutModelRefinement": {
+      "baseRequirement": "requirements/requirements.md lists Tab / Shift+Tab for next/previous focus area.",
+      "dbDiagramDesignDecision": "DB diagram v07 uses F6 / Shift+F6 for major areas and reserves Tab / Shift+Tab for traversal inside panels, dialogs, pickers, and command sheets.",
+      "resolution": "Use v07 behavior for DB diagram implementation; consider updating base requirements text in a later requirements revision."
+    },
+    "relationSemantics": "Derived from FK + PK/unique/composite constraints; no independent editable relationship metadata in MVP.",
+    "compoundActionSafety": "FK, join table, relation-affecting delete and bulk/destructive actions require visible preview or confirmation and must be undo-safe.",
+    "spaceCommandSheet": "Progressive Space command sheet is the DB diagram fast command entry; command palette remains global command entry."
+  }
 }
