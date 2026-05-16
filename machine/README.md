@@ -25,9 +25,10 @@ Updated: 2026-05-11 13:32 MSK.
 
 - Requirements status: draft 0.4, no open questions recorded.
 - Design status: DB diagram UX latest recommendation is v07.
-- Important refinement: DB diagram v07 uses `F6` / `Shift+F6` for major UI areas and reserves `Tab` / `Shift+Tab` for traversal inside panels/dialogs/pickers. This refines older base requirements that listed `Tab` for focus areas.
+- Important runtime refinement: current app navigation uses `0` top menu, `1` left menu, `2` canvas, `3` inspector for major UI areas, and reserves `Tab` / `Shift+Tab` for traversal inside panels/dialogs/pickers. The earlier DB diagram v07 `F6` / `Shift+F6` cycle is retained as replaced historical design context, not the active shortcut model.
 - MVP boundaries preserved: no SQL DDL import/export, no crow's foot notation, no required manual keyboard positioning, no configurable keymap/layout, no full DB modeling suite.
 - Safety rule: all mutating/compound/destructive operations go through undo-safe commands; FK/join-table/destructive flows require preview or confirmation.
+- Release/dev tooling: F12 key log is dev-only; default/release runs do not show it in footer/F1/ShortcutMap. Enable only explicitly with `-Dschemeonyou.debug.keyLog=true` or `SCHEMEONYOU_DEBUG_KEY_LOG=true`.
 
 ## Current task tracking
 

@@ -194,19 +194,34 @@
         "Ctrl+Y",
         "Ctrl+Shift+Z"
       ],
-      "next_focus": "Tab",
-      "previous_focus": "Shift+Tab",
+      "in_area_next": "Tab",
+      "in_area_previous": "Shift+Tab",
       "edit_or_confirm": "Enter",
       "cancel_or_back": "Esc",
-      "delete_selected": "Delete"
+      "delete_selected": "Delete",
+      "major_area_focus": {
+        "top_menu": "0",
+        "left_menu": "1",
+        "canvas": "2",
+        "inspector": "3"
+      }
     },
     "databaseDiagramShortcutRefinement": {
-      "major_area_next": "F6",
-      "major_area_previous": "Shift+F6",
-      "in_panel_traversal_next": "Tab",
-      "in_panel_traversal_previous": "Shift+Tab",
+      "major_area_focus": {
+        "top_menu": "0",
+        "left_menu": "1",
+        "canvas": "2",
+        "inspector": "3"
+      },
+      "legacy_major_area_cycle": {
+        "major_area_next": "F6",
+        "major_area_previous": "Shift+F6",
+        "status": "replaced by direct 0/1/2/3 focus targets in current runtime"
+      },
+      "in_area_traversal_next": "Tab",
+      "in_area_traversal_previous": "Shift+Tab",
       "canvas_command_sheet": "Space",
-      "reason": "Avoid collision between focus traversal, canvas object navigation, and text input."
+      "reason": "Avoid collision between focus traversal, canvas object navigation, and text input; current runtime uses direct major-area focus targets instead of cycling."
     }
   },
   "storage": {
@@ -280,7 +295,7 @@
   },
   "openQuestions": [],
   "sourceStatus": {
-    "updatedAt": "2026-05-11T13:31:00+03:00",
+    "updatedAt": "2026-05-15T14:00:00+03:00",
     "requirementsVersion": "draft 0.4",
     "openQuestions": 0,
     "sources": [
@@ -296,8 +311,8 @@
     "databaseDiagramUxLatest": "design/db-diagram-ui-ux-v07.md",
     "shortcutModelRefinement": {
       "baseRequirement": "requirements/requirements.md lists Tab / Shift+Tab for next/previous focus area.",
-      "dbDiagramDesignDecision": "DB diagram v07 uses F6 / Shift+F6 for major areas and reserves Tab / Shift+Tab for traversal inside panels, dialogs, pickers, and command sheets.",
-      "resolution": "Use v07 behavior for DB diagram implementation; consider updating base requirements text in a later requirements revision."
+      "dbDiagramDesignDecision": "DB diagram v07 used F6 / Shift+F6 for major-area cycling; current runtime replaces that with direct 0/1/2/3 focus targets for top menu, left menu, canvas, and inspector.",
+      "resolution": "Current DB diagram implementation policy: 0/1/2/3 switch directly to major areas; Tab / Shift+Tab stay scoped to traversal inside panels, dialogs, pickers, and command sheets. F6 / Shift+F6 are retained only as legacy v07 context."
     },
     "relationSemantics": "Derived from FK + PK/unique/composite constraints; no independent editable relationship metadata in MVP.",
     "compoundActionSafety": "FK, join table, relation-affecting delete and bulk/destructive actions require visible preview or confirmation and must be undo-safe.",

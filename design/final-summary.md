@@ -25,7 +25,7 @@ Latest version: `db-diagram-ui-ux-v07.md`.
 ## Ключевые UI/UX и shortcut-решения
 
 - Основной экран: Project tree, Canvas, Inspector/properties panel, одна context line + status hint, transient command palette/sheet/dialogs.
-- `F6` / `Shift+F6` переключают крупные области интерфейса; `Tab` остаётся только для traversal внутри панели, диалога или picker.
+- Текущий runtime shortcut model: `0` top menu, `1` left menu, `2` canvas, `3` inspector переключают крупные области напрямую; `Tab` остаётся только для traversal внутри панели, диалога или picker. Историческое решение v07 с `F6` / `Shift+F6` заменено этой схемой.
 - Canvas navigation использует стрелки, selection depth и `Enter` для входа из table depth в column depth.
 - `Space` на canvas открывает progressive command sheet: видны prefix, допустимые следующие клавиши, `Backspace`, `Esc` и feedback на неверные keys.
 - Основные chords: `Space A T` add table, `Space A C` add column, `Space A F` add FK, `Space A J` add join table, `Space P` pin relation, `Space U` unpin, `Space E` select FK edge, `Space G T/G S` go target/source, `Space L D/L S` layout.

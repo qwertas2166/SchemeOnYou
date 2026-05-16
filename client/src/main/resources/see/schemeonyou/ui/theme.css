@@ -1,0 +1,84 @@
+.root {
+    -fx-font-family: "Monaspace Krypton", "Monaspace", "SFMono-Regular", "Consolas", monospace;
+    -fx-font-weight: 200;
+    -fx-base: #1F232A;
+    -fx-background: #1F232A;
+    -fx-control-inner-background: #2B313B;
+    -fx-accent: #4C8DFF;
+    -fx-focus-color: #4C8DFF;
+    -fx-faint-focus-color: rgba(76,141,255,0.18);
+}
+
+.app-root-background {
+    -fx-background-color: #1F232A;
+}
+.app-empty-background {
+    -fx-background-color: #1F232A;
+}
+.app-layout {
+    -fx-background-color: transparent;
+}
+.functional-area {
+    -fx-padding: 18 8 8 8;
+    -fx-background-color: transparent;
+    -fx-border-color: #48515F;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+.functional-area-legend {
+    -fx-padding: 0 7 0 7;
+    -fx-translate-x: 12;
+    -fx-translate-y: -8;
+    -fx-background-color: #1F232A;
+    -fx-text-fill: #A8B0BD;
+    -fx-font-size: 11px;
+    -fx-font-weight: 400;
+}
+.functional-area-top { -fx-padding: 18 8 4 8; }
+.functional-area-left { -fx-padding: 18 4 8 8; }
+.functional-area-canvas { -fx-padding: 18 4 8 4; }
+.functional-area-inspector { -fx-padding: 18 8 8 4; }
+.functional-area-footer { -fx-padding: 18 8 8 8; }
+
+.label { -fx-text-fill: #E6EAF0; -fx-font-weight: 200; }
+.section-title { -fx-font-weight: 400; }
+.button {
+    -fx-background-color: #2B313B;
+    -fx-text-fill: #E6EAF0;
+    -fx-border-color: #48515F;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 4 9;
+}
+.button:hover { -fx-background-color: #303847; }
+.tool-bar {
+    -fx-background-color: #252A32;
+    -fx-border-color: #48515F;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 6 8;
+}
+.split-pane,
+.scroll-pane,
+.list-view,
+.text-area,
+.text-field {
+    -fx-background-color: #252A32;
+    -fx-control-inner-background: #2B313B;
+    -fx-text-fill: #E6EAF0;
+}
+.list-cell {
+    -fx-background-color: #2B313B;
+    -fx-text-fill: #E6EAF0;
+    -fx-padding: 4 6;
+}
+.list-cell:selected { -fx-background-color: #4C8DFF; -fx-text-fill: white; }
+.text-field,
+.text-area {
+    -fx-border-color: #48515F;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-highlight-fill: #4C8DFF;
+}
+.check-box { -fx-text-fill: #E6EAF0; }
+.separator *.line { -fx-border-color: #48515F; }

@@ -51,8 +51,8 @@ Canonical design: `design/db-diagram-ui-ux-v07.md`.
 Key decisions:
 
 - Main screen: top bar, project tree, canvas, inspector/properties panel, single context line + status hint.
-- `F6` / `Shift+F6` move between major areas.
-- `Tab` / `Shift+Tab` traverse inside panels/dialogs/pickers, not canvas objects.
+- Current runtime major-area navigation is direct: `0` top menu, `1` left menu, `2` canvas, `3` inspector.
+- `Tab` / `Shift+Tab` traverse inside panels/dialogs/pickers, not between major areas or canvas objects.
 - Canvas navigation uses arrows, selection depth, `Enter` to enter table columns, `Esc` to return to table depth.
 - `Space` opens progressive command sheet on canvas.
 - Main DB chords: `Space A T`, `Space A C`, `Space A F`, `Space A J`, `Space P`, `Space U`, `Space E`, `Space G T/G S`, `Space L D/L S`.

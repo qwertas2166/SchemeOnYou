@@ -188,8 +188,12 @@
 - `Ctrl+F` — find.
 - `Ctrl+Z` — undo.
 - `Ctrl+Y` или `Ctrl+Shift+Z` — redo.
-- `Tab` — next focus area/element.
-- `Shift+Tab` — previous focus area/element.
+- `0` — focus top menu.
+- `1` — focus left/project menu.
+- `2` — focus canvas.
+- `3` — focus inspector/properties panel.
+- `Tab` — next focusable control inside the current area, field, dialog, picker, or sheet.
+- `Shift+Tab` — previous focusable control inside the current area, field, dialog, picker, or sheet.
 - `Enter` — edit/confirm.
 - `Esc` — cancel/back.
 - `Delete` — delete selected через undo-safe action.

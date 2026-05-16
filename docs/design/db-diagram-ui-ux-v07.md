@@ -71,7 +71,7 @@ This fixes the main v06 risk: the same footer can support relation state, previe
 
 ### Application focus
 
-- `F6` / `Shift+F6`: cycle project tree → canvas → inspector → back.
+- Current runtime refinement replacing the original v07 cycle: `0` top menu, `1` project/left menu, `2` canvas, `3` inspector. Historical note: original v07 used `F6` / `Shift+F6` to cycle project tree → canvas → inspector → back.
 - `Tab` / `Shift+Tab`: normal traversal inside the focused panel, dialog, picker, or command sheet.
 - Canvas object navigation never uses plain `Tab`.
 
@@ -244,7 +244,8 @@ There are two command paths:
 | Shortcut | Context | Action |
 |---|---|---|
 | `Ctrl+Shift+P` | Global | Command palette |
-| `F6` / `Shift+F6` | Global | Next/previous major area |
+| `0` / `1` / `2` / `3` | Global | Direct major-area focus: top menu / left menu / canvas / inspector |
+| `F6` / `Shift+F6` | Legacy v07 note | Replaced previous next/previous major-area cycle; not an active runtime shortcut |
 | `Ctrl+F` | Global/canvas | Find table/column/FK |
 | `F1` | Global | Shortcut overlay |
 | `Space`, `A T` | Canvas command sheet | Add table |

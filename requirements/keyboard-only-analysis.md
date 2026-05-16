@@ -46,7 +46,8 @@
 
 ## MVP navigation
 
-- `Tab` / `Shift+Tab` — переход по focus areas.
+- `0` / `1` / `2` / `3` — актуальное переключение крупных зон UI: top menu, left/project menu, canvas, inspector.
+- `Tab` / `Shift+Tab` — scoped traversal внутри текущей панели, поля, dialog, picker или sheet; не активный способ переключения крупных зон.
 - `Ctrl+F` — поиск элемента.
 - `Enter` — edit/confirm.
 - `Esc` — cancel/back.

@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+APP_HOME="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+JAVA_HOME="${JAVA_HOME:-$HOME/workspace/java/openjdk-25.0.2}"
+JAVA="$JAVA_HOME/bin/java"
+CP="$APP_HOME/client/target/classes:$APP_HOME/core/target/classes:$APP_HOME/client/target/client-0.0.1-SNAPSHOT.jar:$APP_HOME/core/target/core-0.0.1-SNAPSHOT.jar"
+if [ -d "$APP_HOME/client/target/lib" ]; then
+  for jar in "$APP_HOME"/client/target/lib/*.jar; do [ -f "$jar" ] && CP="$CP:$jar"; done
+fi
+if [ -d "$APP_HOME/core/target/lib" ]; then
+  for jar in "$APP_HOME"/core/target/lib/*.jar; do [ -f "$jar" ] && CP="$CP:$jar"; done
+fi
+exec "$JAVA" -cp "$CP" see.schemeonyou.SchemeOnYouMain "$@"

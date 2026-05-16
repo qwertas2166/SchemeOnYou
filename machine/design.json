@@ -13,7 +13,7 @@
     },
     {
       "version": "v02",
-      "focus": "Resolve Tab and bare-letter shortcut conflicts with F6 and Space command mode."
+      "focus": "Resolve Tab and bare-letter shortcut conflicts with F6 and Space command mode; current runtime supersedes F6 with direct 0/1/2/3 major-area focus."
     },
     {
       "version": "v03",
@@ -62,8 +62,11 @@
   ],
   "focusAndSelection": {
     "majorAreaTraversal": {
-      "next": "F6",
-      "previous": "Shift+F6"
+      "topMenu": "0",
+      "leftMenu": "1",
+      "canvas": "2",
+      "inspector": "3",
+      "previousDesign": "v07 used F6/Shift+F6 cycling; replaced in runtime by direct 0/1/2/3 focus targets."
     },
     "tabUsage": "Only inside focused panel, dialog, picker, or command sheet.",
     "canvasObjectNavigation": "Arrow keys, selection depth, Enter to enter selected table columns, Esc to leave column depth.",

@@ -79,7 +79,7 @@
         "Keep target pinned checkbox default off",
         "Join table as undoable compound action",
         "Progressive Space command sheet",
-        "F6/Shift+F6 major area traversal",
+        "0/1/2/3 direct major-area focus (top menu, left menu, canvas, inspector); legacy v07 F6/Shift+F6 cycle is replaced",
         "F1 shortcut overlay/onboarding"
       ],
       "dependsOn": [
@@ -187,7 +187,7 @@
       "id": "A006",
       "title": "Run 13:45 consistency and contradiction review",
       "status": "done",
-      "result": "JSON valid; machine state matches requirements/design with one documented shortcut refinement (Tab vs F6). No corrective content changes required beyond marking review complete."
+      "result": "JSON valid; machine state updated to current runtime keymap: 0/1/2/3 direct major-area focus replaces the earlier v07 F6/Shift+F6 cycle; Tab remains scoped inside panels/dialogs/pickers."
     }
   ]
 }

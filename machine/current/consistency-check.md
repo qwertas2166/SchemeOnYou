@@ -91,3 +91,12 @@ This is correctly represented in machine state as a v07 DB-design refinement, no
 ### Result
 
 `machine/` now reflects the current known requirements and DB design state. No additional content corrections required in this pass.
+
+## Runtime keymap sync — 2026-05-15 13:30 MSK
+
+Status: **updated / current runtime source of truth**.
+
+- Current major-area navigation is direct: `0` top menu, `1` left menu, `2` canvas, `3` inspector.
+- `Tab` / `Shift+Tab` remain scoped to traversal inside panels, fields, dialogs, pickers, and command surfaces.
+- The earlier DB design v07 `F6` / `Shift+F6` cycle is now documented only as a replaced historical design decision, not as an active runtime shortcut.
+- Updated machine docs, design summaries, docs/mockup hints, Figma plugin labels, and SVG fallback labels to avoid presenting F6 as current runtime behavior.
