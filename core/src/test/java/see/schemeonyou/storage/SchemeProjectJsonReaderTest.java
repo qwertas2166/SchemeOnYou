@@ -17,6 +17,11 @@ class SchemeProjectJsonReaderTest {
         id.setPrimaryKey(true);
         id.setNullable(false);
         users.getColumns().add(id);
+        users.getConstraints().add(new DbTableConstraint("users_pk", DbTableConstraintType.COMPOSITE_PRIMARY_KEY, java.util.List.of("column-1", "column-2")));
+        DbColumn tenant = new DbColumn("column-2", "tenant_id", "uuid");
+        tenant.setPrimaryKey(true);
+        tenant.setNullable(false);
+        users.getColumns().add(tenant);
         database.getTables().add(users);
         database.getCanvasState().setViewportX(10);
         database.getCanvasState().setViewportY(20);
@@ -38,8 +43,41 @@ class SchemeProjectJsonReaderTest {
         assertEquals(writer.write(project), writer.write(loaded));
         assertEquals("Demo", loaded.getName());
         assertEquals(2, loaded.getDiagrams().size());
-        assertEquals("users", loaded.getDiagrams().getFirst().getTables().getFirst().getName());
+        DbTable loadedUsers = loaded.getDiagrams().getFirst().getTables().getFirst();
+        assertEquals("users", loadedUsers.getName());
+        assertEquals(DbTableConstraintType.COMPOSITE_PRIMARY_KEY, loadedUsers.getConstraints().getFirst().type());
+        assertEquals(java.util.List.of("column-1", "column-2"), loadedUsers.getConstraints().getFirst().columnIds());
         assertTrue(loaded.getDiagrams().get(1).getMessages().getFirst().isActivation());
+    }
+
+    @Test
+    void readsOldTableFormatWithoutConstraintsAsEmptyList() throws Exception {
+        SchemeProject project = new SchemeProjectJsonReader().read("""
+                {"version": 1, "id": "p", "name": "Demo", "createdAt": "2026-01-01T00:00:00Z", "updatedAt": "2026-01-01T00:00:00Z", "diagrams": [
+                  {"id":"d","name":"Database","type":"DATABASE","canvas":{"viewportX":0,"viewportY":0,"zoom":1,"bounds":{}},"tables":[
+                    {"id":"t","name":"users","columns":[
+                      {"id":"c","name":"id","type":"uuid","primaryKey":true,"unique":false,"nullable":false}
+                    ]}
+                  ],"foreignKeys":[],"participants":[],"messages":[]}
+                ]}
+                """);
+
+        assertTrue(project.getDiagrams().getFirst().getTables().getFirst().getConstraints().isEmpty());
+    }
+
+    @Test
+    void rejectsConstraintReferencesToMissingColumns() {
+        IOException error = assertThrows(IOException.class, () -> new SchemeProjectJsonReader().read("""
+                {"version": 1, "id": "p", "name": "Demo", "createdAt": "2026-01-01T00:00:00Z", "updatedAt": "2026-01-01T00:00:00Z", "diagrams": [
+                  {"id":"d","name":"Database","type":"DATABASE","canvas":{"viewportX":0,"viewportY":0,"zoom":1,"bounds":{}},"tables":[
+                    {"id":"t","name":"users","columns":[
+                      {"id":"c","name":"id","type":"uuid","primaryKey":true,"unique":false,"nullable":false}
+                    ],"constraints":[{"id":"pk","type":"composite_primary_key","columnIds":["c","missing"]}]}
+                  ],"foreignKeys":[],"participants":[],"messages":[]}
+                ]}
+                """));
+
+        assertTrue(error.getMessage().contains("Unknown column id"));
     }
 
     @Test

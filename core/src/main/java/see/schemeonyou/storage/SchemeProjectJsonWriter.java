@@ -4,6 +4,7 @@ import see.di.See;
 import see.schemeonyou.model.*;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @See
 public class SchemeProjectJsonWriter {
@@ -67,6 +68,9 @@ public class SchemeProjectJsonWriter {
         out.field("name", t.getName(), true);
         out.line("\"columns\": ["); out.indent();
         for (int i = 0; i < t.getColumns().size(); i++) { writeColumn(out, t.getColumns().get(i)); out.line(i + 1 == t.getColumns().size() ? "" : ","); }
+        out.dedent(); out.line("],");
+        out.line("\"constraints\": ["); out.indent();
+        for (int i = 0; i < t.getConstraints().size(); i++) { writeConstraint(out, t.getConstraints().get(i)); out.line(i + 1 == t.getConstraints().size() ? "" : ","); }
         out.dedent(); out.line("]");
         out.dedent(); out.line("}");
     }
@@ -75,16 +79,23 @@ public class SchemeProjectJsonWriter {
         out.line("{\"id\":" + Json.q(c.getId()) + ",\"name\":" + Json.q(c.getName()) + ",\"type\":" + Json.q(c.getType()) + ",\"primaryKey\":" + c.isPrimaryKey() + ",\"unique\":" + c.isUnique() + ",\"nullable\":" + c.isNullable() + "}");
     }
 
+    private void writeConstraint(Json out, DbTableConstraint constraint) {
+        String columnIds = constraint.columnIds().stream()
+                .map(Json::q)
+                .collect(Collectors.joining(",", "[", "]"));
+        out.line("{\"id\":" + Json.q(constraint.id()) + ",\"type\":" + Json.q(constraint.type().storageName()) + ",\"columnIds\":" + columnIds + "}");
+    }
+
     private void writeForeignKey(Json out, ForeignKey fk) {
         out.line("{\"id\":" + Json.q(fk.getId()) + ",\"sourceTableId\":" + Json.q(fk.getSourceTableId()) + ",\"sourceColumnId\":" + Json.q(fk.getSourceColumnId()) + ",\"targetTableId\":" + Json.q(fk.getTargetTableId()) + ",\"targetColumnId\":" + Json.q(fk.getTargetColumnId()) + "}");
     }
 
     private void writeParticipant(Json out, SequenceParticipant p) {
-        out.line("{\"id\":" + Json.q(p.getId()) + ",\"name\":" + Json.q(p.getName()) + "}");
+        out.line("{\"id\":" + Json.q(p.getId()) + ",\"name\":" + Json.q(p.getName()) + ",\"type\":" + Json.q(p.getType().storageName()) + "}");
     }
 
     private void writeMessage(Json out, SequenceMessage m) {
-        out.line("{\"id\":" + Json.q(m.getId()) + ",\"from\":" + Json.q(m.getFromParticipantId()) + ",\"to\":" + Json.q(m.getToParticipantId()) + ",\"label\":" + Json.q(m.getLabel()) + ",\"activation\":" + m.isActivation() + "}");
+        out.line("{\"id\":" + Json.q(m.getId()) + ",\"from\":" + Json.q(m.getFromParticipantId()) + ",\"to\":" + Json.q(m.getToParticipantId()) + ",\"label\":" + Json.q(m.getLabel()) + ",\"type\":" + Json.q(m.getType().storageName()) + ",\"order\":" + m.getOrder() + ",\"activation\":" + m.isActivation() + "}");
     }
 
     static class Json {

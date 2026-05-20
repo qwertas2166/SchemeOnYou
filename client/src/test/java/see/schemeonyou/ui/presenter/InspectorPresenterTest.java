@@ -3,10 +3,14 @@ package see.schemeonyou.ui.presenter;
 import org.junit.jupiter.api.Test;
 import see.schemeonyou.model.DbColumn;
 import see.schemeonyou.model.DbTable;
+import see.schemeonyou.model.DbTableConstraint;
+import see.schemeonyou.model.DbTableConstraintType;
 import see.schemeonyou.model.Diagram;
 import see.schemeonyou.model.DiagramType;
 import see.schemeonyou.model.SequenceMessage;
+import see.schemeonyou.model.SequenceMessageType;
 import see.schemeonyou.model.SequenceParticipant;
+import see.schemeonyou.model.SequenceParticipantType;
 import see.schemeonyou.ui.presenter.InspectorPresenter.EditField;
 import see.schemeonyou.ui.presenter.InspectorPresenter.Field;
 import see.schemeonyou.ui.presenter.InspectorPresenter.FieldKind;
@@ -43,14 +47,17 @@ class InspectorPresenterTest {
         InspectorModel participant = presenter.inspect(diagram, Selection.of(null, null, "api", null), Optional.empty());
         assertEquals("Sequence participant", participant.sections().getFirst().title());
         assertField(participant, FieldKind.TEXT, EditField.SEQUENCE_PARTICIPANT_NAME, "Name", "API", "", false);
+        assertField(participant, FieldKind.TEXT, EditField.SEQUENCE_PARTICIPANT_TYPE, "Type", "database", "", false);
         assertField(participant, FieldKind.ACTION_HINT, null, "Delete", "Delete / Space D", "", false);
 
         InspectorModel message = presenter.inspect(diagram, Selection.of(null, null, "web", "m1"), Optional.empty());
         assertEquals("Sequence message", message.sections().getFirst().title());
         assertField(message, FieldKind.TEXT, EditField.SEQUENCE_MESSAGE_LABEL, "Label", "GET /orders", "", false);
+        assertField(message, FieldKind.TEXT, EditField.SEQUENCE_MESSAGE_TYPE, "Type", "async", "", false);
+        assertField(message, FieldKind.TEXT, EditField.SEQUENCE_MESSAGE_ORDER, "Order", "3", "", false);
         assertField(message, FieldKind.CHECKBOX, EditField.SEQUENCE_MESSAGE_ACTIVATION, "Activation", "true", "", false);
-        assertField(message, FieldKind.READ_ONLY, null, "From", "Web", "", false);
-        assertField(message, FieldKind.READ_ONLY, null, "To", "API", "", false);
+        assertField(message, FieldKind.TEXT, EditField.SEQUENCE_MESSAGE_FROM, "From", "Web", "", false);
+        assertField(message, FieldKind.TEXT, EditField.SEQUENCE_MESSAGE_TO, "To", "API", "", false);
     }
 
     @Test
@@ -71,7 +78,7 @@ class InspectorPresenterTest {
     @Test
     void fkPreviewIsRepresentedWithoutJavaFxControls() {
         Diagram diagram = databaseDiagram();
-        var preview = new InspectorPresenter.FkPreviewModel("Orders.user_id", "Users.id", true, "No blocking issues");
+        var preview = new InspectorPresenter.FkPreviewModel("Orders.user_id", "Users.id", true, "many-to-one", "No blocking issues");
 
         InspectorModel model = presenter.inspect(diagram, Selection.of("users", null, null, null), Optional.of(preview));
 
@@ -116,9 +123,9 @@ class InspectorPresenterTest {
 
     private Diagram sequenceDiagram() {
         Diagram diagram = new Diagram("seq", "Sequence", DiagramType.SEQUENCE);
-        diagram.getParticipants().add(new SequenceParticipant("web", "Web"));
-        diagram.getParticipants().add(new SequenceParticipant("api", "API"));
-        SequenceMessage message = new SequenceMessage("m1", "web", "api", "GET /orders");
+        diagram.getParticipants().add(new SequenceParticipant("web", "Web", SequenceParticipantType.ACTOR));
+        diagram.getParticipants().add(new SequenceParticipant("api", "API", SequenceParticipantType.DATABASE));
+        SequenceMessage message = new SequenceMessage("m1", "web", "api", "GET /orders", SequenceMessageType.ASYNC, 3);
         message.setActivation(true);
         diagram.getMessages().add(message);
         return diagram;

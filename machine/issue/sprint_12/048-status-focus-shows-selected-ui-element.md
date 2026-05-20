@@ -1,0 +1,32 @@
+summary - Показывать Focus в status для всех выбираемых UI-элементов
+
+status - done
+priority - high
+cost - S
+
+goal - Сделать status Focus информативным: он должен отображать не только выбранную функциональную область, но и конкретный выбранный UI-элемент внутри нее.
+
+description - В области status значение Focus сейчас должно быть расширено до уровня всех selectable/focusable UI-элементов. При перемещении фокуса/селекта по интерфейсу status должен показывать текущий элемент: функциональная область + конкретный элемент, если он выбран. Это помогает понимать, какой элемент получит действие `Enter`, `Esc`, `Tab` или shortcut.
+
+acceptance criteria -
+- Status Focus отображает текущую функциональную область и конкретный выбранный UI-элемент, если он есть.
+- Focus обновляется при переключении областей через `0`, `1`, `2`, `3`.
+- Focus обновляется при перемещении `Tab`/`Shift+Tab` внутри функциональной группы.
+- Focus обновляется при выборе элементов canvas, left menu, inspector, top menu и других selectable UI-elements.
+- Для элементов используется понятное человекочитаемое имя: например `Inspector > Table name`, `Canvas > users table`, `Left menu > Add table`.
+- Если выбран только контейнер/область без конкретного элемента, status показывает область без ложного элемента.
+- Hidden/disabled/non-selectable элементы не должны попадать в status Focus.
+- Обновление Focus не ломает keyboard navigation, focus outline и view/edit mode inspector fields.
+- Добавлены тесты/проверки или documented smoke-check для нескольких типов элементов.
+
+notes -
+- Требование SEE от 2026-05-17: "В области status Focus должен отображаться не только для областей, но для всех элементов UI, которые можно выбрать".
+- Связано с focus model: `035`, `037`, `044`, `045`.
+- Оценка дана в формате S/M/L/XL: `S`.
+
+progress - 2026-05-17 02:04 MSK: moved from backlog to sprint_12 during hourly backlog analysis; priority set to high (pairs with inspector/focus work and improves keyboard clarity).
+
+progress - 2026-05-18 14:00 MSK scheduler-2: backlog/ пуст; взята highest-priority подходящая S-задача из текущего sprint pool. Status footer теперь показывает `Focus: <area> > <element>` для top menu buttons, diagram/table lists, canvas selected table/column/FK/participant/message и inspector fields; строка обновляется при смене focus owner и после redraw/selection changes.
+validation -
+- 2026-05-18 14:00 MSK: `JAVA_HOME=/home/openclaw/workspace/java/openjdk-25.0.2 PATH=/home/openclaw/workspace/java/apache-maven-3.9.11/bin:/home/openclaw/workspace/java/openjdk-25.0.2/bin:$PATH mvn -q -pl client -am -Dmaven.resources.skip=true -DskipTests test-compile` — passed.
+- 2026-05-18 14:00 MSK: `git diff --check` — passed.

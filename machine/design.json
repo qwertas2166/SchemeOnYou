@@ -94,11 +94,14 @@
       "Space A J": "add_join_table",
       "Space P": "pin_relation",
       "Space U": "unpin_relation",
-      "Space E": "select_fk_edge",
-      "Space G T": "go_target",
-      "Space G S": "go_source",
-      "Space L D": "layout_whole_diagram",
-      "Space L S": "layout_selected_cluster"
+      "Space E": "edit_selected",
+      "Space G S": "find_element",
+      "Space L D": "layout_whole_diagram"
+    },
+    "futureChords": {
+      "Space G T": "go_target / table-specific navigation after FK-edge picker is implemented",
+      "Space L S": "layout_selected_cluster after selected-cluster layout exists",
+      "FK edge picker": "use a non-conflicting chord; Space E is reserved for edit selected"
     }
   },
   "databaseDiagramModel": {
@@ -142,7 +145,7 @@
     "destructiveActions": "Require confirmation when bulk or relation-affecting."
   },
   "mvpExclusionsPreserved": [
-    "SQL DDL import/export",
+    "SQL DDL text import/export",
     "crow foot notation",
     "required manual keyboard positioning",
     "full constraint editor",
@@ -156,5 +159,15 @@
     "Selected, pinned, FK direction and Source/Target roles must be visually clear.",
     "Selection depth and relation pin require F1/help onboarding.",
     "FK inference and type mismatch warnings must be transparent."
-  ]
+  ],
+  "databaseImportScope": {
+    "mvpAllowed": "PostgreSQL metadata import from a live connection for tables, columns, single-column FK metadata, and PK metadata including composite PK as table-level constraints.",
+    "excluded": "SQL DDL text import/export, generic DB vendor support, SQL parsing, DDL export, merge import, and full grouped/composite foreign-key model/import.",
+    "replacePolicy": "Repeated import replaces the whole selected DB diagram.",
+    "compositeKeyPolicy": {
+      "singleColumnForeignKeys": "import as FK edges",
+      "compositePrimaryKeys": "import as deterministic table-level COMPOSITE_PRIMARY_KEY constraints",
+      "compositeForeignKeys": "skip with import warning in MVP; do not split into misleading per-column FK edges"
+    }
+  }
 }

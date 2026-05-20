@@ -21,8 +21,8 @@ public class ShortcutMap {
         bind("Space A P", "sequence.participant.add"); bind("Space A M", "sequence.message.add");
         bind("Space A F", "db.fk.add"); bind("Space A J", "db.joinTable.add"); bind("Space P", "db.relation.pin"); bind("Space U", "db.relation.clearPin");
         bind("Delete", "element.deleteSelected"); bind("Space D", "element.deleteSelected");
-        bind("Space E", "element.edit"); bind("Space G T", "go.table"); bind("Space G S", "go.search");
-        bind("Space L D", "layout.diagram"); bind("Space L S", "layout.selection");
+        bind("Space E", "element.edit"); bind("Space G S", "element.find");
+        bind("Space L D", "layout.diagram");
     }
     public void bind(String shortcut, String commandId) { commandByShortcut.put(shortcut, commandId); }
     public Optional<String> commandFor(String shortcut) { return Optional.ofNullable(commandByShortcut.get(shortcut)); }

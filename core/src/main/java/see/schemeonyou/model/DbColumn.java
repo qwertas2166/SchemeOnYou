@@ -1,13 +1,25 @@
 package see.schemeonyou.model;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+
 import java.util.Objects;
 
+@Getter
 public class DbColumn {
     private final String id;
+    @Setter
+    @NonNull
     private String name;
+    @Setter
+    @NonNull
     private String type;
+    @Setter
     private boolean primaryKey;
+    @Setter
     private boolean unique;
+    @Setter
     private boolean nullable = true;
 
     public DbColumn(String id, String name, String type) {
@@ -16,15 +28,4 @@ public class DbColumn {
         this.type = Objects.requireNonNull(type);
     }
 
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = Objects.requireNonNull(name); }
-    public String getType() { return type; }
-    public void setType(String type) { this.type = Objects.requireNonNull(type); }
-    public boolean isPrimaryKey() { return primaryKey; }
-    public void setPrimaryKey(boolean primaryKey) { this.primaryKey = primaryKey; }
-    public boolean isUnique() { return unique; }
-    public void setUnique(boolean unique) { this.unique = unique; }
-    public boolean isNullable() { return nullable; }
-    public void setNullable(boolean nullable) { this.nullable = nullable; }
 }

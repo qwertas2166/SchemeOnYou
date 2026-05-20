@@ -17,6 +17,7 @@ Updated: 2026-05-11 13:32 MSK
 - Multiple diagrams per project.
 - Sequence diagram.
 - Database tables diagram.
+- PostgreSQL metadata import from live connection for DB diagrams: tables, columns, single-column FKs, and PK metadata; composite PK becomes a table-level constraint, composite FK is skipped with an import warning in MVP.
 - Command palette with fuzzy search.
 - IDE-style hardcoded shortcuts.
 - Simple deterministic layout.
@@ -31,7 +32,8 @@ Updated: 2026-05-11 13:32 MSK
 - Strict UML model.
 - Class/use case/activity/state/component/deployment diagrams.
 - PlantUML/Mermaid import/export.
-- SQL DDL import/export.
+- SQL DDL text import/export.
+- Full grouped/composite foreign-key import/model; MVP skips composite FK metadata groups with warnings instead of creating misleading per-column edges.
 - Sequence combined fragments: alt/opt/loop/par.
 - Crow's foot ERD notation.
 - Required manual keyboard positioning.
@@ -55,10 +57,10 @@ Key decisions:
 - `Tab` / `Shift+Tab` traverse inside panels/dialogs/pickers, not between major areas or canvas objects.
 - Canvas navigation uses arrows, selection depth, `Enter` to enter table columns, `Esc` to return to table depth.
 - `Space` opens progressive command sheet on canvas.
-- Main DB chords: `Space A T`, `Space A C`, `Space A F`, `Space A J`, `Space P`, `Space U`, `Space E`, `Space G T/G S`, `Space L D/L S`.
+- Main active DB chords: `Space A T`, `Space A C`, `Space A F`, `Space A J`, `Space P`, `Space U`, `Space E` (edit selected), `Space G S` (find element), `Space L D` (layout diagram). Future/non-MVP: `Space G T`, `Space L S`, FK edge picker on a non-conflicting chord.
 - Relation pin is explicit and visible; `Keep target pinned after create` exists only as an FK-preview checkbox and defaults off.
 - FK creation uses explicit Source/Target role chips and local `X Swap` while preview is visible.
-- Relation meaning is derived from FK + PK/unique/composite constraints, not independent editable relationship metadata.
+- Relation meaning is derived from FK + PK/unique/composite constraints, not independent editable relationship metadata. DB import currently supports composite PK constraints but not grouped composite FK constraints.
 - Join table is one undoable compound action.
 - Visual notation stays simple: table cards, markers, directional FK lines; no crow's foot notation in MVP.
 

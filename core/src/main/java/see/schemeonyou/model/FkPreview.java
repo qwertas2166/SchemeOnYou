@@ -1,10 +1,15 @@
 package see.schemeonyou.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
 public class FkPreview {
     private String sourceTableId;
     private String sourceColumnId;
     private String targetTableId;
     private String targetColumnId;
+    @Setter
     private boolean keepTargetPinnedAfterCreate;
 
     public FkPreview(String sourceTableId, String sourceColumnId, String targetTableId, String targetColumnId) {
@@ -13,13 +18,6 @@ public class FkPreview {
         this.targetTableId = targetTableId;
         this.targetColumnId = targetColumnId;
     }
-
-    public String getSourceTableId() { return sourceTableId; }
-    public String getSourceColumnId() { return sourceColumnId; }
-    public String getTargetTableId() { return targetTableId; }
-    public String getTargetColumnId() { return targetColumnId; }
-    public boolean isKeepTargetPinnedAfterCreate() { return keepTargetPinnedAfterCreate; }
-    public void setKeepTargetPinnedAfterCreate(boolean keepTargetPinnedAfterCreate) { this.keepTargetPinnedAfterCreate = keepTargetPinnedAfterCreate; }
 
     public void setTarget(String targetTableId, String targetColumnId) {
         this.targetTableId = targetTableId;

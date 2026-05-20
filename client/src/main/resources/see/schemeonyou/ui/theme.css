@@ -26,6 +26,15 @@
     -fx-border-radius: 8;
     -fx-background-radius: 8;
 }
+.functional-area:active {
+    -fx-border-color: #4C8DFF;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(76,141,255,0.30), 10, 0.18, 0, 0);
+}
+.functional-area:active .functional-area-legend {
+    -fx-text-fill: #E6EAF0;
+    -fx-background-color: #252A32;
+}
 .functional-area-legend {
     -fx-padding: 0 7 0 7;
     -fx-translate-x: 12;

@@ -1,5 +1,5 @@
 summary - Укрепить JSON/SVG escaping и тесты на спецсимволы пользовательских имён
-status - in_progress
+status - done
 priority - mid
 cost - S
 
@@ -20,3 +20,4 @@ dependencies/risks -
 
 progress -
 - 2026-05-16 scheduler-2: взято как S-задача для cron-слота; расширен JSON writer на все control chars, SVG text escaping/normalization, добавлены regression tests для JSON round-trip и SVG XML parse. Валидация заблокирована окружением: `mvn` и `java` отсутствуют.
+- 2026-05-19 21:33 MSK scheduler-3: повторно проверено с project-local Java/Maven: JSON writer экранирует quote/backslash/LF/CR/tab/backspace/form-feed/other control chars, SVG exporter экранирует XML-sensitive chars и заменяет invalid XML text chars. Verification: `mvn -q test`, `mvn -q -DskipTests package`, JSON validation and `git diff --check` passed; Java/Guice/JavaFX warnings only. Status set to done.

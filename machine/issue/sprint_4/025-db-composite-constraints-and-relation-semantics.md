@@ -1,6 +1,6 @@
 summary - Добавить table-level composite constraints для join table и derived relation semantics
 
-status - planned
+status - done
 priority - high
 cost - M
 
@@ -20,3 +20,8 @@ dependencies/risks -
 - Related to `sprint_1/005-05-done-join-table-compound-ui.md`, но не дублирует UI-flow: здесь model/storage/validation semantics.
 - Related to `sprint_2/016-harden-json-and-svg-string-escaping.md` because JSON format changes should keep deterministic writer coverage.
 - Risk: не разрастить в full constraint editor; MVP нужен только минимальный composite marker для relation semantics и join-table sketches.
+
+progress - 2026-05-19 14:00 MSK scheduler-2: взята в работу из sprint-пула, потому что `machine/issue/backlog/` пуст, а это highest-priority M-задача среди доступных planned. Добавлен core slice: `DbTableConstraint`/`DbTableConstraintType`, storage round-trip с backward-compatible отсутствующим `constraints`, composite PK marker при создании join table, базовая validation целостности constraint column refs, core tests. Осталось добить UI/canvas/SVG/inspector labels и полную relation-semantics часть acceptance.
+- 2026-05-19 18:30 MSK scheduler-2: продолжен UI/export slice composite constraints. Canvas теперь рисует явный `PK(...)`/`UNQ(...)` label после колонок, SVG export добавляет такой же текстовый marker, inspector показывает read-only summary `Composite PK (...)`; добавлены regression tests для inspector/SVG. Проверка: `mvn -q test` и `git diff --check` OK. Задача оставлена `in_progress`: остаются полная derived relation semantics/validator acceptance и возможная canvas snapshot-проверка.
+- 2026-05-19 19:00 MSK scheduler-2: продолжен validation slice. FK target uniqueness теперь проходит через `isIndividuallyUnique(...)`, чтобы composite PK/UNQ не считался uniqueness для одиночной FK-колонки; добавлен regression test `DatabaseConstraintValidationTest` на composite-target ambiguity. Проверка: `mvn -q -pl core test` и `git diff --check` OK. Задача остается `in_progress`: нужен финальный проход по full derived relation semantics/закрытию acceptance.
+- 2026-05-19 19:30 MSK scheduler-2: финализирован semantic slice. Добавлен `DbRelationSemantics`/`DbRelationMeaning`: FK meaning теперь выводится из индивидуальной uniqueness source/target (`many-to-one` vs `one-to-one`, ambiguous target), а join-table many-to-many определяется по двум FK + composite PK/UNQ на source columns. `DiagramValidator` использует общий uniqueness helper, чтобы composite constraints не давали ложную uniqueness для одиночной FK-колонки. Добавлены regression tests на derived one-to-one/many-to-one и many-to-many join-table detection. Проверка: `mvn -q -pl core -Dtest=DatabaseConstraintValidationTest test`, `mvn -q -pl core test`, `git diff --check` OK. Статус: done.

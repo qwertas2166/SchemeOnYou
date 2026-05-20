@@ -11,9 +11,10 @@ Source context: `requirements/requirements.md`, `requirements/keyboard-only-anal
 - IDE-style hardcoded shortcuts.
 - Command palette with fuzzy search is the primary command entry.
 - MVP DB diagram supports table, column, primary key, foreign key.
+- MVP DB diagram supports PostgreSQL metadata import from a live connection.
 - Relations: FK, one-to-one, one-to-many, many-to-many via join table.
 - Crow's foot notation is explicitly out of MVP.
-- SQL DDL import/export is out of MVP.
+- SQL DDL text import/export is out of MVP; live PostgreSQL metadata import is allowed and separate from DDL.
 - Manual keyboard positioning is not required in MVP.
 - Simple predictable auto-layout is acceptable.
 - Undo/redo for all mutations.

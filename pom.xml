@@ -22,6 +22,7 @@
         <javafx.version>25.0.1</javafx.version>
         <java.uuid.generator>5.1.0</java.uuid.generator>
         <junit.jupiter.version>5.11.4</junit.jupiter.version>
+        <postgresql.jdbc.version>42.7.11</postgresql.jdbc.version>
     </properties>
 
     <repositories>
@@ -62,6 +63,11 @@
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-graphics</artifactId>
                 <version>${javafx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.jdbc.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

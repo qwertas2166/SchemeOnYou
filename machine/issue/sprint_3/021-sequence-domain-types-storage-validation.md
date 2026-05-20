@@ -1,5 +1,5 @@
 summary - Добавить полноценные sequence participant/message свойства в model/storage/validation
-status - planned
+status - done
 priority - high
 cost - M
 
@@ -23,3 +23,6 @@ dependencies/risks -
 clarification - Решения SEE от 2026-05-15:
 - MVP sequence ограничивается participant + message + activation; расширять beyond этого не нужно.
 - SVG должен быть semantic enough, pixel-parity не требуется.
+progress - 2026-05-18 19:30 MSK scheduler-2: taken from planned sprint issues because `machine/issue/backlog/` is empty. Implemented core sequence participant/message types, message order, JSON reader/writer round-trip with backward-compatible defaults, sequence validation for missing endpoints/order/self-call rules, SVG labels/self-call rendering, and tests. Full `mvn -q test` passed with project-local Java/Maven. Remaining before done: review/update JavaFX canvas/inspector UI display/editing for the new type/order fields if required by release scope.
+progress - 2026-05-18 20:00 MSK scheduler-2: closed remaining UI slice: inspector now exposes participant type and message type/order as undoable editable fields with validation feedback, canvas labels include order/type, return messages render dashed, self-calls render as a loop. Added presenter coverage and reran full project tests: `mvn -q test` passed with project-local Java/Maven.
+progress - 2026-05-19 10:00 MSK scheduler-2: hygiene cleanup `062`: moved from `machine/issue/work/` to `machine/issue/sprint_3/` because status is `done`; product/code scope unchanged.

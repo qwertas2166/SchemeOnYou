@@ -21,11 +21,28 @@ class SvgExporterTest {
         String svg = new SvgExporter().export(diagram);
 
         assertTrue(svg.contains("Users &amp; &lt;Admins&gt; &quot;team&quot; &apos;core&apos; "));
+        assertTrue(svg.contains("<path class=\"divider\" d=\"M 11.0 58.0 L 229.0 58.0\"/>"));
         assertTrue(svg.contains("email\nline\rcell\tTabbed: varchar &amp; text"));
         assertFalse(svg.contains(String.valueOf((char) 0x01)));
         assertDoesNotThrow(() -> DocumentBuilderFactory.newInstance()
                 .newDocumentBuilder()
                 .parse(new InputSource(new StringReader(svg))));
+    }
+
+    @Test
+    void exportShowsCompositeConstraintLabels() throws Exception {
+        Diagram diagram = new Diagram("diagram-1", "Database", DiagramType.DATABASE);
+        DbTable table = new DbTable("table-1", "Join");
+        table.getColumns().add(new DbColumn("left_id", "left_id", "uuid"));
+        table.getColumns().add(new DbColumn("right_id", "right_id", "uuid"));
+        table.getConstraints().add(new DbTableConstraint("join_pk", DbTableConstraintType.COMPOSITE_PRIMARY_KEY, java.util.List.of("left_id", "right_id")));
+        diagram.getTables().add(table);
+        diagram.getCanvasState().getBoundsByElementId().put("table-1", new Rect(10, 20, 220, 140));
+
+        String svg = new SvgExporter().export(diagram);
+
+        assertTrue(svg.contains("PK(left_id, right_id)"));
+        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(svg)));
     }
 
     @Test

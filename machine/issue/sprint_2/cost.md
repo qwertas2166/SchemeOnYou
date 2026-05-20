@@ -1,6 +1,6 @@
 # Sprint 2 plan / status
 
-Актуализировано: 2026-05-15 14:05 Europe/Moscow.
+Актуализировано: 2026-05-20 09:24 Europe/Moscow.
 
 ## Состав спринта
 
@@ -10,7 +10,7 @@
 | `018-done-sync-machine-requirements-keymap-runtime.md` | done | high | S | Закрыт остаточный drift в `machine/requirements.json`; F6 оставлен только legacy/replaced. |
 | `015-non-modal-keyboard-flows-for-frequent-actions.md` | planned | high | M | Следующий главный UX debt: убрать blocking dialogs из частых keyboard-first flows. |
 | `016-harden-json-and-svg-string-escaping.md` | planned | mid | S | Writer/export hardening и regression tests для спецсимволов; хорошо брать как короткий срез. |
-| `017-release-readiness-environment-and-ci-parity.md` | planned | mid | M | Reproducible local/CI verification contract, снимает ложные blockers по Maven/JDK. |
+| `017-release-readiness-environment-and-ci-parity.md` | done | mid | M | Release verification contract зафиксирован в `machine/release-verification.md`; mandatory MVP package gate и diff-check подтверждены. |
 
 ## Актуальная приоритезация sprint_2
 
@@ -27,3 +27,7 @@
 ## L/XL
 
 В `sprint_2/` L и XL не найдено.
+
+### 2026-05-20 09:24 MSK scheduler-2
+
+- `017` закрыта: contract для project-local Java/Maven, `SEE_REPO`, mandatory MVP package gate, optional tests/core-only fallback и JavaFX/native-access warnings зафиксирован и проверен.

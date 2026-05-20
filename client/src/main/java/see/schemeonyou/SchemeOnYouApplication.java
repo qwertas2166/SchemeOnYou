@@ -2,12 +2,12 @@ package see.schemeonyou;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -21,6 +21,10 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import see.schemeonyou.command.*;
 import see.schemeonyou.export.SvgExporter;
+import see.schemeonyou.importer.ConnectionProfileStore;
+import see.schemeonyou.importer.DbImportDiagramReplacer;
+import see.schemeonyou.importer.DbImportReplaceCommand;
+import see.schemeonyou.importer.PostgreSqlMetadataImporter;
 import see.schemeonyou.layout.DeterministicLayoutEngine;
 import see.schemeonyou.model.*;
 import see.schemeonyou.service.ProjectFactory;
@@ -30,10 +34,14 @@ import see.schemeonyou.ui.DocumentState;
 import see.schemeonyou.ui.FocusAreaNavigator;
 import see.schemeonyou.ui.canvas.CanvasHitTestPresenter;
 import see.schemeonyou.ui.command.CommandRouter;
+import see.schemeonyou.ui.command.KeyLogController;
+import see.schemeonyou.ui.command.ShortcutHelpModel;
 import see.schemeonyou.ui.command.ShortcutMap;
 import see.schemeonyou.ui.command.SpaceCommandSheet;
 import see.schemeonyou.ui.canvas.CanvasShell;
 import see.schemeonyou.ui.canvas.DeleteSelectedController;
+import see.schemeonyou.ui.canvas.CanvasRenderer;
+import see.schemeonyou.ui.importer.DbImportDialog;
 import see.schemeonyou.ui.presenter.DocumentLifecycleGuard;
 import see.schemeonyou.ui.presenter.InspectorPresenter;
 import see.schemeonyou.ui.search.FindElementPresenter;
@@ -44,8 +52,6 @@ import see.schemeonyou.validation.ValidationResult;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Comparator;
@@ -53,7 +59,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SchemeOnYouApplication extends Application {
-    private static final DateTimeFormatter KEY_LOG_TIME = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     private static final double DESIGN_FOOTER_OVERLAY_HEIGHT = 78.0;
     private static final String APP_BG = "#1F232A";
     private static final String PANEL_BG = "#252A32";
@@ -71,6 +76,7 @@ public class SchemeOnYouApplication extends Application {
     private static final String WARNING = "#D19A3E";
     private static final String ERROR = "#E06C75";
     private static final String FOCUS_RING = "-fx-effect: dropshadow(gaussian, rgba(76, 141, 255, 0.75), 0, 0, 0, 0); -fx-border-color: " + SELECTION + "; -fx-border-width: 2; -fx-border-radius: 6;";
+    private static final PseudoClass ACTIVE_FUNCTIONAL_AREA = PseudoClass.getPseudoClass("active");
     private static final String UI_FONT_FAMILY = "Monaspace Krypton";
 
     private final ProjectFactory factory = new ProjectFactory();
@@ -78,17 +84,20 @@ public class SchemeOnYouApplication extends Application {
     private final DeterministicLayoutEngine layout = new DeterministicLayoutEngine();
     private final SvgExporter svgExporter = new SvgExporter();
     private final SchemeProjectStorage storage = new SchemeProjectStorage();
-    private static final String KEY_LOG_PROPERTY = "schemeonyou.debug.keyLog";
-    private static final String KEY_LOG_ENV = "SCHEMEONYOU_DEBUG_KEY_LOG";
-
-    private final boolean keyLogEnabled = isKeyLogEnabled();
+    private final ConnectionProfileStore connectionProfileStore = new ConnectionProfileStore(ConnectionProfileStore.launcherAdjacentProfileFile(Path.of(System.getProperty("user.dir"))));
+    private final PostgreSqlMetadataImporter metadataImporter = new PostgreSqlMetadataImporter();
+    private final DbImportDiagramReplacer dbImportReplacer = new DbImportDiagramReplacer();
+    private final boolean keyLogEnabled = KeyLogController.isEnabled();
+    private final KeyLogController keyLogController = new KeyLogController();
     private final ShortcutMap shortcuts = new ShortcutMap(keyLogEnabled);
     private final CommandRouter commandRouter = new CommandRouter();
     private final SpaceCommandSheet spaceSheet = new SpaceCommandSheet();
+    private final ShortcutHelpModel shortcutHelp = new ShortcutHelpModel(shortcuts, commandRouter, spaceSheet);
     private final DiagramValidator validator = new DiagramValidator();
     private final CanvasHitTestPresenter canvasHitTestPresenter = new CanvasHitTestPresenter();
     private final DeleteSelectedController deleteSelectedController = new DeleteSelectedController();
     private final CanvasShell deleteSelection = new CanvasShell();
+    private final CanvasRenderer canvasRenderer = new CanvasRenderer();
     private final see.schemeonyou.ui.ContextLineResolver contextLineResolver = new see.schemeonyou.ui.ContextLineResolver();
     private final CreateJoinTableCommandFactory joinTableFactory = new CreateJoinTableCommandFactory();
     private final DocumentState documentState = new DocumentState();
@@ -122,13 +131,22 @@ public class SchemeOnYouApplication extends Application {
     private VBox commandPaletteOverlay;
     private TextField commandPaletteSearch;
     private ListView<CommandMetadata> commandPaletteResults;
+    private VBox findElementOverlay;
+    private TextField findElementSearch;
+    private ListView<FindElementPresenter.SearchResult> findElementResults;
+    private VBox renameOverlay;
+    private TextField renameInput;
+    private String renameTableId;
+    private VBox deleteConfirmOverlay;
+    private Label deleteConfirmBody;
+    private DeletePreview pendingDeletePreview;
+    private VBox joinTableConfirmOverlay;
+    private Label joinTableConfirmBody;
+    private PendingJoinTablePreview pendingJoinTablePreview;
     private VBox inspectorFields;
     private ScrollPane inspector;
     private Label context;
     private Label status;
-    private Stage keyLogStage;
-    private TextArea keyLogArea;
-    private long keyLogCounter;
     private boolean spaceCommandMode;
     private double lastPanSceneX;
     private double lastPanSceneY;
@@ -165,6 +183,7 @@ public class SchemeOnYouApplication extends Application {
         ApplicationLayoutConstraints.configureLeftPanel(leftArea);
         ApplicationLayoutConstraints.configureCanvasArea(canvasArea);
         ApplicationLayoutConstraints.configureInspector(inspectorArea);
+        ApplicationLayoutConstraints.configureFunctionalAreaLayering(leftArea, canvasArea, inspectorArea);
         layout.setTop(functionalArea("functional-area-top", "0 Top menu", topBar()));
         layout.setLeft(leftArea);
         layout.setCenter(canvasArea);
@@ -174,7 +193,8 @@ public class SchemeOnYouApplication extends Application {
 
         Scene scene = new Scene(root, 1280, 820);
         scene.getStylesheets().add(java.util.Objects.requireNonNull(getClass().getResource("/see/schemeonyou/ui/theme.css")).toExternalForm());
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, this::logKeyPress);
+        scene.focusOwnerProperty().addListener((obs, oldOwner, newOwner) -> updateStatusFocus());
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, keyLogController::logKeyPress);
         scene.addEventHandler(KeyEvent.KEY_PRESSED, this::handleShortcut);
         stage.setTitle("SchemeOnYou");
         stage.setOnCloseRequest(event -> {
@@ -213,6 +233,14 @@ public class SchemeOnYouApplication extends Application {
 
         StackPane container = new StackPane(content, legend);
         container.getStyleClass().addAll("functional-area", styleClass);
+        container.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) {
+                container.pseudoClassStateChanged(ACTIVE_FUNCTIONAL_AREA, false);
+                return;
+            }
+            newScene.focusOwnerProperty().addListener((focusObs, oldOwner, newOwner) -> updateFunctionalAreaActive(container, newOwner));
+            updateFunctionalAreaActive(container, newScene.getFocusOwner());
+        });
         StackPane.setAlignment(content, Pos.CENTER);
         StackPane.setAlignment(legend, Pos.TOP_LEFT);
         return container;
@@ -248,6 +276,8 @@ public class SchemeOnYouApplication extends Application {
         save.setOnAction(e -> saveProject());
         Button export = new Button("Export SVG");
         export.setOnAction(e -> exportSvg());
+        Button importDb = new Button("Import DB");
+        importDb.setOnAction(e -> showDbImportDialog());
         Button fit = new Button("Fit");
         fit.setOnAction(e -> fitDiagramToCanvas());
         Button actual = new Button("100%");
@@ -260,7 +290,7 @@ public class SchemeOnYouApplication extends Application {
         help.setOnAction(e -> showShortcuts());
         projectTitle = new Label();
         dirtyState = new Label();
-        topMenu = new ToolBar(projectTitle, dirtyState, new Separator(), newDb, open, save, export, new Separator(), fit, actual, zoomOut, zoomIn, new Separator(), help);
+        topMenu = new ToolBar(projectTitle, dirtyState, new Separator(), newDb, open, save, export, importDb, new Separator(), fit, actual, zoomOut, zoomIn, new Separator(), help);
         updateDocumentChrome();
         topMenu.setFocusTraversable(true);
         applyFocusIndicator(topMenu, "-fx-background-color: " + PANEL_BG + "; -fx-border-color: " + BORDER + "; -fx-border-width: 0 0 1 0;");
@@ -307,12 +337,8 @@ public class SchemeOnYouApplication extends Application {
             if (!draggingMoved) selectElementAt(e.getX(), e.getY());
         });
         canvas.setOnScroll(e -> {
-            if (activeDiagram == null) return;
-            if (e.isControlDown()) {
-                zoomCanvasBy(e.getDeltaY() > 0 ? 1.10 : 1.0 / 1.10);
-            } else {
-                panCanvasByPixels(-e.getDeltaX(), -e.getDeltaY());
-            }
+            if (activeDiagram == null || e.getDeltaY() == 0) return;
+            zoomCanvasBy(e.getDeltaY() > 0 ? 1.10 : 1.0 / 1.10);
             e.consume();
         });
         canvas.setOnMousePressed(e -> {
@@ -390,9 +416,12 @@ public class SchemeOnYouApplication extends Application {
         StackPane pane = new StackPane(canvas, canvasHintFooter);
         canvasStack = pane;
         StackPane.setAlignment(canvasHintFooter, Pos.BOTTOM_CENTER);
-        pane.setPadding(new Insets(16));
+        pane.setPadding(Insets.EMPTY);
         pane.setStyle("-fx-background-color: " + CANVAS_BG + ";");
         ApplicationLayoutConstraints.configureCanvasArea(pane);
+        ApplicationLayoutConstraints.bindCanvasToArea(canvas, pane);
+        canvas.widthProperty().addListener((obs, oldWidth, newWidth) -> redraw());
+        canvas.heightProperty().addListener((obs, oldHeight, newHeight) -> redraw());
         return pane;
     }
 
@@ -415,7 +444,7 @@ public class SchemeOnYouApplication extends Application {
 
     private VBox footer() {
         context = new Label("Ready");
-        status = new Label(statusHintText());
+        status = new Label(statusText());
         VBox footer = new VBox(2, context, status);
         footer.setPadding(new Insets(6, 10, 8, 10));
         footer.setStyle("-fx-background-color: " + PANEL_BG + "; -fx-text-fill: " + TEXT_PRIMARY + "; -fx-border-color: " + BORDER + "; -fx-border-width: 1 0 0 0;");
@@ -424,16 +453,82 @@ public class SchemeOnYouApplication extends Application {
         return footer;
     }
 
-    private static boolean isKeyLogEnabled() {
-        String property = System.getProperty(KEY_LOG_PROPERTY);
-        if (property != null) return Boolean.parseBoolean(property);
-        String env = System.getenv(KEY_LOG_ENV);
-        return env != null && (env.equalsIgnoreCase("true") || env.equals("1") || env.equalsIgnoreCase("yes"));
+    private String statusHintText() {
+        String base = "0 top menu · 1 left menu · 2 canvas · 3 inspector · Tab within panels · Ctrl+K/Ctrl+Shift+P palette · Ctrl+N new · Ctrl+±/wheel zoom · Ctrl+0 fit · Ctrl+1 100% · Ctrl+Arrows pan · Space commands";
+        return keyLogEnabled ? base + " · F12 key log · F1 help" : base + " · F1 help";
     }
 
-    private String statusHintText() {
-        String base = "0 top menu · 1 left menu · 2 canvas · 3 inspector · Tab within panels · Ctrl+K/Ctrl+Shift+P palette · Ctrl+N new · Ctrl+± zoom · Ctrl+0 fit · Ctrl+1 100% · Ctrl+Arrows pan · Space commands";
-        return keyLogEnabled ? base + " · F12 key log · F1 help" : base + " · F1 help";
+    private String statusText() {
+        return statusFocusText() + " · " + statusHintText();
+    }
+
+    private void updateStatusFocus() {
+        if (status != null) status.setText(statusText());
+    }
+
+    private String statusFocusText() {
+        Node owner = stage == null || stage.getScene() == null ? null : stage.getScene().getFocusOwner();
+        String area = focusAreaTitle(owner);
+        String element = focusElementTitle(owner);
+        if (element == null || element.isBlank() || element.equals(area)) return "Focus: " + area;
+        return "Focus: " + area + " > " + element;
+    }
+
+    private String focusAreaTitle(Node owner) {
+        if (owner != null) {
+            if (isDescendantOrSelf(topMenu, owner)) return "Top menu";
+            if (isDescendantOrSelf(leftMenu, owner)) return "Left menu";
+            if (isDescendantOrSelf(canvas, owner)) return "Canvas";
+            if (isDescendantOrSelf(inspectorPanel, owner)) return "Inspector";
+        }
+        return "None";
+    }
+
+    private String focusElementTitle(Node owner) {
+        if (owner == null) return null;
+        if (owner == canvas) return selectedCanvasElementTitle();
+        if (owner instanceof ButtonBase button && button.getText() != null && !button.getText().isBlank()) return button.getText();
+        if (owner instanceof TextInputControl input) return inspectorFieldTitle(input).orElseGet(() -> input.getPromptText() == null || input.getPromptText().isBlank() ? "Text field" : input.getPromptText());
+        if (owner instanceof ListView<?>) return owner == diagramList ? selectedDiagramTitle() : selectedTableListTitle();
+        return nodeLabelText(owner).orElse(null);
+    }
+
+    private Optional<String> inspectorFieldTitle(Node node) {
+        for (Node current = node.getParent(); current != null; current = current.getParent()) {
+            if (current instanceof VBox box && !box.getChildren().isEmpty() && box.getChildren().getFirst() instanceof Label label) {
+                String text = label.getText();
+                if (text != null && !text.isBlank()) return Optional.of(text);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> nodeLabelText(Node node) {
+        if (node instanceof Labeled labeled && labeled.getText() != null && !labeled.getText().isBlank()) return Optional.of(labeled.getText());
+        return Optional.empty();
+    }
+
+    private String selectedDiagramTitle() {
+        Diagram selected = diagramList == null ? null : diagramList.getSelectionModel().getSelectedItem();
+        return selected == null ? "Diagrams" : "Diagram " + selected.getName();
+    }
+
+    private String selectedTableListTitle() {
+        DbTable selected = tableList == null ? null : tableList.getSelectionModel().getSelectedItem();
+        return selected == null ? "Tables" : "Table " + selected.getName();
+    }
+
+    private String selectedCanvasElementTitle() {
+        if (activeDiagram == null) return "Canvas";
+        if (selectedColumnId != null && selectedTableId != null) {
+            Optional<DbTable> table = activeDiagram.findTable(selectedTableId);
+            return table.flatMap(t -> t.findColumn(selectedColumnId).map(c -> "Column " + t.getName() + "." + c.getName())).orElse("Column");
+        }
+        if (selectedTableId != null) return activeDiagram.findTable(selectedTableId).map(table -> "Table " + table.getName()).orElse("Table");
+        if (selectedForeignKeyId != null) return "FK " + selectedForeignKeyId;
+        if (selectedMessageId != null) return activeDiagram.getMessages().stream().filter(message -> message.getId().equals(selectedMessageId)).findFirst().map(message -> "Message " + message.getLabel()).orElse("Message");
+        if (selectedParticipantId != null) return activeDiagram.getParticipants().stream().filter(participant -> participant.getId().equals(selectedParticipantId)).findFirst().map(participant -> "Participant " + participant.getName()).orElse("Participant");
+        return "Canvas";
     }
 
     private void registerCommands() {
@@ -455,6 +550,7 @@ public class SchemeOnYouApplication extends Application {
         registerCommand(CommandMetadata.of("element.deleteSelected", "Delete selected", "Delete", "delete", "remove"), this::deleteSelected);
         registerCommand(CommandMetadata.of("element.find", "Find element", "Ctrl+F", "find", "search"), this::findElement);
         registerCommand(CommandMetadata.of("export.svg", "Export SVG", "", "svg", "export"), this::exportSvg);
+        registerCommand(CommandMetadata.of("db.import", "Import tables from DB", "", "database", "postgresql", "import"), this::showDbImportDialog);
         registerCommand(CommandMetadata.of("help.shortcuts", "Show shortcuts", "F1", "shortcuts", "help"), this::showShortcuts);
         registerCommand(CommandMetadata.of("undo", "Undo", "Ctrl+Z", "undo"), this::undoCommand);
         registerCommand(CommandMetadata.of("redo", "Redo", "Ctrl+Shift+Z / Ctrl+Y", "redo"), this::redoCommand);
@@ -784,6 +880,10 @@ public class SchemeOnYouApplication extends Application {
         selectMessage(message, "Selected message: " + message.getLabel());
     }
 
+    private void updateFunctionalAreaActive(StackPane container, Node focusOwner) {
+        container.pseudoClassStateChanged(ACTIVE_FUNCTIONAL_AREA, isDescendantOrSelf(container, focusOwner));
+    }
+
     private void focusArea(Node node, String title) {
         if (node == null) return;
         FocusAreaNavigator.firstFocusableInArea(node).orElse(node).requestFocus();
@@ -849,6 +949,10 @@ public class SchemeOnYouApplication extends Application {
             cancelSpaceCommand("Space command cancelled");
             return;
         }
+        if (event.getCode() == KeyCode.BACK_SPACE) {
+            removeLastSpaceCommandToken();
+            return;
+        }
         if (!event.getCode().isLetterKey()) return;
         if (!spaceCommandBuffer.isEmpty()) spaceCommandBuffer.append(' ');
         spaceCommandBuffer.append(event.getCode().getName().toUpperCase());
@@ -886,6 +990,25 @@ public class SchemeOnYouApplication extends Application {
 
     private boolean isSpaceCommandPrefix(String command) {
         return List.of("A", "G", "L").contains(command);
+    }
+
+    private void removeLastSpaceCommandToken() {
+        if (spaceCommandBuffer.isEmpty()) {
+            showCanvasHint("space", "Space commands", spaceCommandHintText(""));
+            context.setText("Space command mode");
+            return;
+        }
+        int lastSeparator = spaceCommandBuffer.lastIndexOf(" ");
+        if (lastSeparator >= 0) spaceCommandBuffer.delete(lastSeparator, spaceCommandBuffer.length());
+        else spaceCommandBuffer.setLength(0);
+        String prefix = spaceCommandBuffer.toString();
+        if (prefix.isBlank()) {
+            context.setText("Space command mode");
+            showCanvasHint("space", "Space commands", spaceCommandHintText(""));
+        } else {
+            context.setText("Space " + prefix + " …");
+            showCanvasHint("space", "Space " + prefix + " …", spaceCommandHintText(prefix));
+        }
     }
 
     private void cancelSpaceCommand(String message) {
@@ -1035,70 +1158,8 @@ public class SchemeOnYouApplication extends Application {
         hideCanvasHint();
     }
 
-    private void logKeyPress(KeyEvent event) {
-        if (keyLogArea == null) return;
-        keyLogArea.appendText(String.format(
-                "%04d  %s  %-12s  text='%s'  modifiers=%s%n",
-                ++keyLogCounter,
-                LocalTime.now().format(KEY_LOG_TIME),
-                event.getCode(),
-                printable(event.getText()),
-                modifiers(event)
-        ));
-    }
-
-    private String modifiers(KeyEvent event) {
-        StringBuilder modifiers = new StringBuilder();
-        if (event.isControlDown()) modifiers.append("Ctrl+");
-        if (event.isAltDown()) modifiers.append("Alt+");
-        if (event.isShiftDown()) modifiers.append("Shift+");
-        if (event.isMetaDown()) modifiers.append("Meta+");
-        if (modifiers.isEmpty()) return "none";
-        modifiers.setLength(modifiers.length() - 1);
-        return modifiers.toString();
-    }
-
-    private String printable(String text) {
-        if (text == null || text.isEmpty()) return "";
-        return text.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n").replace("\r", "\\r");
-    }
-
     private void showKeyLogWindow() {
-        if (keyLogStage == null) {
-            keyLogArea = new TextArea();
-            keyLogArea.setEditable(false);
-            keyLogArea.setWrapText(false);
-            keyLogArea.setFont(Font.font("Monospaced", 12));
-            keyLogArea.setText("Key press log. Press keys in the main window; F12 shows this window.\n");
-
-            Button clear = new Button("Clear");
-            clear.setOnAction(e -> {
-                keyLogCounter = 0;
-                keyLogArea.setText("Key press log cleared.\n");
-            });
-
-            BorderPane root = new BorderPane(keyLogArea);
-            root.setTop(new ToolBar(new Label("SchemeOnYou key log"), new Separator(), clear));
-            Scene scene = new Scene(root, 680, 420);
-            scene.addEventFilter(KeyEvent.KEY_PRESSED, this::logKeyPress);
-            scene.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
-                if (e.getCode() == KeyCode.F12) {
-                    stage.requestFocus();
-                    e.consume();
-                }
-            });
-
-            keyLogStage = new Stage();
-            keyLogStage.setTitle("SchemeOnYou — Key Log");
-            keyLogStage.initOwner(stage);
-            keyLogStage.setScene(scene);
-            keyLogStage.setOnCloseRequest(e -> {
-                keyLogStage.hide();
-                e.consume();
-            });
-        }
-        keyLogStage.show();
-        keyLogStage.toFront();
+        keyLogController.show(stage);
         context.setText("Key log window opened");
     }
 
@@ -1221,24 +1282,24 @@ public class SchemeOnYouApplication extends Application {
         spaceCommandMode = false;
         spaceCommandBuffer.setLength(0);
         StringBuilder body = new StringBuilder();
-        shortcuts.asMap().forEach((k, v) -> body.append(k).append(" — ").append(v).append("   "));
+        shortcutHelp.entries(activeDiagramType()).forEach((k, v) -> body.append(k).append(" — ").append(v).append("   "));
         showCanvasHint("shortcuts", "Shortcuts", body.toString());
         canvas.requestFocus();
     }
 
     private String spaceCommandHintText(String prefix) {
         if ("A".equals(prefix)) return addCommandHintText();
-        if ("G".equals(prefix)) return activeDiagramType() == DiagramType.SEQUENCE ? "G S — search   Esc — cancel" : "G T — go to table   G S — search   Esc — cancel";
-        if ("L".equals(prefix)) return activeDiagramType() == DiagramType.SEQUENCE ? "L D — layout diagram   Esc — cancel" : "L D — layout diagram   L S — layout selection   Esc — cancel";
-        StringBuilder body = new StringBuilder("Ctrl+±/0/1 — zoom/fit   Ctrl+Arrows — pan   Esc — cancel");
+        if ("G".equals(prefix)) return "G S — find element   Backspace — back   Esc — cancel";
+        if ("L".equals(prefix)) return "L D — layout diagram   Backspace — back   Esc — cancel";
+        StringBuilder body = new StringBuilder("Ctrl+±/Wheel/0/1 — zoom/fit   Ctrl+Arrows — pan   Backspace — back   Esc — cancel");
         body.append("\n");
         spaceSheet.entries(activeDiagramType()).forEach((k, v) -> body.append("Space ").append(k).append(" — ").append(v).append("   "));
         return body.toString();
     }
 
     private String addCommandHintText() {
-        if (activeDiagramType() == DiagramType.SEQUENCE) return "A P — add participant   A M — add message   Esc — cancel";
-        return "A T — add table   A C — add column   A F — add foreign key   A J — add join table   Esc — cancel";
+        if (activeDiagramType() == DiagramType.SEQUENCE) return "A P — add participant   A M — add message   Backspace — back   Esc — cancel";
+        return "A T — add table   A C — add column   A F — add foreign key   A J — add join table   Backspace — back   Esc — cancel";
     }
 
     private void showCanvasHint(String kind, String title, String body) {
@@ -1494,27 +1555,101 @@ public class SchemeOnYouApplication extends Application {
         rightFk.setPrimaryKey(true);
         ForeignKey leftRelation = factory.foreignKey(join.getId(), leftFk.getId(), left.get().getId(), leftPk.get().getId());
         ForeignKey rightRelation = factory.foreignKey(join.getId(), rightFk.getId(), right.get().getId(), rightPk.get().getId());
-        if (!confirmJoinTablePreview(left.get(), right.get(), join, leftFk, rightFk)) {
-            context.setText("Join table preview canceled");
-            return;
-        }
-        runMutating(joinTableFactory.create(activeDiagram, left.get(), leftPk.get(), right.get(), rightPk.get(), join, leftFk, rightFk, leftRelation, rightRelation));
-        relationPin.clear();
-        selectedParticipantId = null;
-        selectedTableId = join.getId();
-        selectedColumnId = null;
-        redraw();
-        context.setText("Added join table: " + join.getName());
+        showJoinTableConfirmOverlay(new PendingJoinTablePreview(left.get(), leftPk.get(), right.get(), rightPk.get(), join, leftFk, rightFk, leftRelation, rightRelation));
     }
 
-    private boolean confirmJoinTablePreview(DbTable left, DbTable right, DbTable join, DbColumn leftFk, DbColumn rightFk) {
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Create join table");
-        confirm.setHeaderText("Create join table: " + join.getName());
-        confirm.setContentText("Participants: " + left.getName() + " ↔ " + right.getName()
-                + "\nColumns: " + leftFk.getName() + ", " + rightFk.getName()
-                + "\nAction: create table, two PK/FK columns, and two FK edges as one undoable command.");
-        return confirm.showAndWait().filter(ButtonType.OK::equals).isPresent();
+    private record PendingJoinTablePreview(
+            DbTable left,
+            DbColumn leftPk,
+            DbTable right,
+            DbColumn rightPk,
+            DbTable join,
+            DbColumn leftFk,
+            DbColumn rightFk,
+            ForeignKey leftRelation,
+            ForeignKey rightRelation
+    ) {}
+
+    private void showJoinTableConfirmOverlay(PendingJoinTablePreview preview) {
+        ensureJoinTableConfirmOverlay();
+        pendingJoinTablePreview = preview;
+        joinTableConfirmBody.setText("Create join table: " + preview.join().getName()
+                + "\nParticipants: " + preview.left().getName() + " ↔ " + preview.right().getName()
+                + "\nColumns: " + preview.leftFk().getName() + ", " + preview.rightFk().getName()
+                + "\nAction: create table, two PK/FK columns, and two FK edges as one undoable command."
+                + "\nEnter confirms • Esc cancels");
+        if (!canvasStack.getChildren().contains(joinTableConfirmOverlay)) {
+            canvasStack.getChildren().add(joinTableConfirmOverlay);
+            StackPane.setAlignment(joinTableConfirmOverlay, Pos.TOP_CENTER);
+            StackPane.setMargin(joinTableConfirmOverlay, new Insets(28, 0, 0, 0));
+        }
+        joinTableConfirmOverlay.setVisible(true);
+        joinTableConfirmOverlay.setManaged(true);
+        context.setText("Join table preview opened — Enter to confirm, Esc to cancel");
+        Platform.runLater(joinTableConfirmOverlay::requestFocus);
+    }
+
+    private void ensureJoinTableConfirmOverlay() {
+        if (joinTableConfirmOverlay != null) return;
+
+        Label title = new Label("Create join table");
+        title.setTextFill(Color.web(TEXT_PRIMARY));
+        title.setFont(uiHeadingFont(13));
+        title.getStyleClass().add("section-title");
+
+        joinTableConfirmBody = new Label();
+        joinTableConfirmBody.setWrapText(true);
+        joinTableConfirmBody.setTextFill(Color.web(TEXT_PRIMARY));
+        joinTableConfirmBody.setFont(uiFont(12));
+
+        Button confirm = new Button("Create");
+        confirm.setDefaultButton(true);
+        confirm.setOnAction(e -> confirmJoinTableOverlay());
+        Button cancel = new Button("Cancel");
+        cancel.setCancelButton(true);
+        cancel.setOnAction(e -> hideJoinTableConfirmOverlay("Join table preview canceled"));
+        HBox actions = new HBox(8, confirm, cancel);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        joinTableConfirmOverlay = new VBox(10, title, joinTableConfirmBody, actions);
+        joinTableConfirmOverlay.setFocusTraversable(true);
+        joinTableConfirmOverlay.setPrefSize(600, 190);
+        joinTableConfirmOverlay.setMaxSize(600, 190);
+        joinTableConfirmOverlay.setPadding(new Insets(12));
+        joinTableConfirmOverlay.setStyle("-fx-background-color: " + PANEL_ELEVATED + "; -fx-border-color: " + SELECTION + "; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+        joinTableConfirmOverlay.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.ESCAPE) {
+                hideJoinTableConfirmOverlay("Join table preview canceled");
+                e.consume();
+            } else if (e.getCode() == KeyCode.ENTER) {
+                confirmJoinTableOverlay();
+                e.consume();
+            }
+        });
+    }
+
+    private void confirmJoinTableOverlay() {
+        PendingJoinTablePreview preview = pendingJoinTablePreview;
+        if (preview == null) {
+            hideJoinTableConfirmOverlay("Join table preview expired");
+            return;
+        }
+        runMutating(joinTableFactory.create(activeDiagram, preview.left(), preview.leftPk(), preview.right(), preview.rightPk(), preview.join(), preview.leftFk(), preview.rightFk(), preview.leftRelation(), preview.rightRelation()));
+        relationPin.clear();
+        selectedParticipantId = null;
+        selectedTableId = preview.join().getId();
+        selectedColumnId = null;
+        redraw();
+        hideJoinTableConfirmOverlay("Added join table: " + preview.join().getName());
+    }
+
+    private void hideJoinTableConfirmOverlay(String message) {
+        if (joinTableConfirmOverlay == null) return;
+        joinTableConfirmOverlay.setVisible(false);
+        joinTableConfirmOverlay.setManaged(false);
+        pendingJoinTablePreview = null;
+        canvas.requestFocus();
+        if (message != null) context.setText(message);
     }
 
     private void renameSelected() {
@@ -1524,14 +1659,84 @@ public class SchemeOnYouApplication extends Application {
             context.setText("Select a table before Rename/Edit");
             return;
         }
-        TextInputDialog dialog = new TextInputDialog(selected.get().getName());
-        dialog.setTitle("Rename selected");
-        dialog.setHeaderText("Rename table");
-        dialog.showAndWait().map(String::trim).filter(s -> !s.isBlank()).ifPresent(name -> {
+        showRenameOverlay(selected.get());
+    }
+
+    private void showRenameOverlay(DbTable table) {
+        ensureRenameOverlay();
+        renameTableId = table.getId();
+        renameInput.setText(table.getName());
+        if (!canvasStack.getChildren().contains(renameOverlay)) {
+            canvasStack.getChildren().add(renameOverlay);
+            StackPane.setAlignment(renameOverlay, Pos.TOP_CENTER);
+            StackPane.setMargin(renameOverlay, new Insets(28, 0, 0, 0));
+        }
+        renameOverlay.setVisible(true);
+        renameOverlay.setManaged(true);
+        context.setText("Rename table opened — Enter to apply, Esc to cancel");
+        Platform.runLater(() -> {
+            renameInput.requestFocus();
+            renameInput.selectAll();
+        });
+    }
+
+    private void ensureRenameOverlay() {
+        if (renameOverlay != null) return;
+
+        Label title = new Label("Rename table");
+        title.setTextFill(Color.web(TEXT_PRIMARY));
+        title.setFont(uiHeadingFont(13));
+        title.getStyleClass().add("section-title");
+
+        renameInput = new TextField();
+        renameInput.setPromptText("Table name");
+
+        Label hint = new Label("Enter applies • Esc cancels");
+        hint.setTextFill(Color.web(TEXT_SECONDARY));
+        hint.setFont(uiFont(11));
+
+        renameOverlay = new VBox(8, title, renameInput, hint);
+        renameOverlay.setPrefSize(420, 116);
+        renameOverlay.setMaxSize(420, 116);
+        renameOverlay.setPadding(new Insets(12));
+        renameOverlay.setStyle("-fx-background-color: " + PANEL_ELEVATED + "; -fx-border-color: " + SELECTION + "; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+        renameOverlay.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.ESCAPE) {
+                hideRenameOverlay("Rename canceled");
+                e.consume();
+            } else if (e.getCode() == KeyCode.ENTER) {
+                applyRenameOverlay();
+                e.consume();
+            }
+        });
+    }
+
+    private void applyRenameOverlay() {
+        String tableId = renameTableId;
+        String name = renameInput == null || renameInput.getText() == null ? "" : renameInput.getText().trim();
+        if (name.isBlank()) {
+            context.setText("Table name cannot be blank");
+            return;
+        }
+        Optional<DbTable> selected = tableId == null ? Optional.empty() : activeDiagram.findTable(tableId);
+        if (selected.isEmpty()) {
+            hideRenameOverlay("Selected table is no longer available");
+            return;
+        }
+        if (!selected.get().getName().equals(name)) {
             runMutating(new RenameTableCommand(selected.get(), name));
             redraw();
-            context.setText("Renamed table: " + name);
-        });
+        }
+        hideRenameOverlay("Renamed table: " + name);
+    }
+
+    private void hideRenameOverlay(String message) {
+        if (renameOverlay == null) return;
+        renameOverlay.setVisible(false);
+        renameOverlay.setManaged(false);
+        renameTableId = null;
+        canvas.requestFocus();
+        if (message != null) context.setText(message);
     }
 
     private void deleteSelected() {
@@ -1542,16 +1747,83 @@ public class SchemeOnYouApplication extends Application {
             context.setText("Select a table, column, FK, participant, or message before Delete selected");
             return;
         }
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, preview.get().contextLine(), ButtonType.OK, ButtonType.CANCEL);
-        confirm.setTitle("Delete selected");
-        confirm.setHeaderText("Confirm destructive action");
-        confirm.showAndWait().filter(ButtonType.OK::equals).ifPresent(button -> {
-            DeletePreview executed = deleteSelectedController.confirmDelete(undo, deleteSelection).orElse(preview.get());
-            markDirty();
-            cleanupAfterDelete(executed);
-            redraw();
-            context.setText("Deleted: " + executed.targetName());
+        showDeleteConfirmOverlay(preview.get());
+    }
+
+    private void showDeleteConfirmOverlay(DeletePreview preview) {
+        ensureDeleteConfirmOverlay();
+        pendingDeletePreview = preview;
+        deleteConfirmBody.setText(preview.contextLine() + "\nEnter confirms • Esc cancels");
+        if (!canvasStack.getChildren().contains(deleteConfirmOverlay)) {
+            canvasStack.getChildren().add(deleteConfirmOverlay);
+            StackPane.setAlignment(deleteConfirmOverlay, Pos.TOP_CENTER);
+            StackPane.setMargin(deleteConfirmOverlay, new Insets(28, 0, 0, 0));
+        }
+        deleteConfirmOverlay.setVisible(true);
+        deleteConfirmOverlay.setManaged(true);
+        context.setText("Delete preview opened — Enter to confirm, Esc to cancel");
+        Platform.runLater(deleteConfirmOverlay::requestFocus);
+    }
+
+    private void ensureDeleteConfirmOverlay() {
+        if (deleteConfirmOverlay != null) return;
+
+        Label title = new Label("Confirm delete");
+        title.setTextFill(Color.web(ERROR));
+        title.setFont(uiHeadingFont(13));
+        title.getStyleClass().add("section-title");
+
+        deleteConfirmBody = new Label();
+        deleteConfirmBody.setWrapText(true);
+        deleteConfirmBody.setTextFill(Color.web(TEXT_PRIMARY));
+        deleteConfirmBody.setFont(uiFont(12));
+
+        Button confirm = new Button("Delete");
+        confirm.setDefaultButton(true);
+        confirm.setOnAction(e -> confirmDeleteOverlay());
+        Button cancel = new Button("Cancel");
+        cancel.setCancelButton(true);
+        cancel.setOnAction(e -> hideDeleteConfirmOverlay("Delete canceled"));
+        HBox actions = new HBox(8, confirm, cancel);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        deleteConfirmOverlay = new VBox(10, title, deleteConfirmBody, actions);
+        deleteConfirmOverlay.setFocusTraversable(true);
+        deleteConfirmOverlay.setPrefSize(560, 150);
+        deleteConfirmOverlay.setMaxSize(560, 150);
+        deleteConfirmOverlay.setPadding(new Insets(12));
+        deleteConfirmOverlay.setStyle("-fx-background-color: " + PANEL_ELEVATED + "; -fx-border-color: " + ERROR + "; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+        deleteConfirmOverlay.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.ESCAPE) {
+                hideDeleteConfirmOverlay("Delete canceled");
+                e.consume();
+            } else if (e.getCode() == KeyCode.ENTER) {
+                confirmDeleteOverlay();
+                e.consume();
+            }
         });
+    }
+
+    private void confirmDeleteOverlay() {
+        DeletePreview fallback = pendingDeletePreview;
+        if (fallback == null) {
+            hideDeleteConfirmOverlay("Delete preview expired");
+            return;
+        }
+        DeletePreview executed = deleteSelectedController.confirmDelete(undo, deleteSelection).orElse(fallback);
+        markDirty();
+        cleanupAfterDelete(executed);
+        redraw();
+        hideDeleteConfirmOverlay("Deleted: " + executed.targetName());
+    }
+
+    private void hideDeleteConfirmOverlay(String message) {
+        if (deleteConfirmOverlay == null) return;
+        deleteConfirmOverlay.setVisible(false);
+        deleteConfirmOverlay.setManaged(false);
+        pendingDeletePreview = null;
+        canvas.requestFocus();
+        if (message != null) context.setText(message);
     }
 
     private void configureDeleteSelection() {
@@ -1597,20 +1869,99 @@ public class SchemeOnYouApplication extends Application {
     }
 
     private void findElement() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Find element");
-        dialog.setHeaderText("Find table, column, relation, participant, or message");
-        dialog.showAndWait().map(String::trim).filter(s -> !s.isBlank()).ifPresent(query -> {
-            List<FindElementPresenter.SearchResult> results = findElementPresenter.search(activeDiagram, query);
-            if (results.isEmpty()) {
-                context.setText("No element found for: " + query);
-                return;
-            }
-            FindElementPresenter.SearchResult result = results.getFirst();
-            applyFindSelection(result.selection());
-            redraw();
-            context.setText("Found " + findElementKindLabel(result.kind()) + ": " + result.label());
+        if (activeDiagram == null) {
+            context.setText("Open or create a diagram before Find element");
+            return;
+        }
+        showFindElementOverlay("");
+    }
+
+    private void showFindElementOverlay(String initialQuery) {
+        ensureFindElementOverlay();
+        findElementSearch.setText(initialQuery == null ? "" : initialQuery);
+        refreshFindElementResults();
+        if (!canvasStack.getChildren().contains(findElementOverlay)) {
+            canvasStack.getChildren().add(findElementOverlay);
+            StackPane.setAlignment(findElementOverlay, Pos.TOP_CENTER);
+            StackPane.setMargin(findElementOverlay, new Insets(28, 0, 0, 0));
+        }
+        findElementOverlay.setVisible(true);
+        findElementOverlay.setManaged(true);
+        context.setText("Find element opened — type query, Enter to select, Esc to close");
+        Platform.runLater(() -> {
+            findElementSearch.requestFocus();
+            findElementSearch.selectAll();
         });
+    }
+
+    private void ensureFindElementOverlay() {
+        if (findElementOverlay != null) return;
+
+        Label title = new Label("Find element");
+        title.setTextFill(Color.web(TEXT_PRIMARY));
+        title.setFont(uiHeadingFont(13));
+        title.getStyleClass().add("section-title");
+
+        findElementSearch = new TextField();
+        findElementSearch.setPromptText("Table, column, relation, participant, or message");
+        findElementSearch.textProperty().addListener((obs, old, next) -> refreshFindElementResults());
+
+        findElementResults = new ListView<>();
+        findElementResults.setPrefHeight(260);
+        findElementResults.setCellFactory(v -> new ListCell<>() {
+            @Override protected void updateItem(FindElementPresenter.SearchResult item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : findElementKindLabel(item.kind()) + ": " + item.label() + " — " + item.contextLabel());
+            }
+        });
+        findElementResults.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) runSelectedFindElement();
+        });
+
+        findElementOverlay = new VBox(8, title, findElementSearch, findElementResults);
+        findElementOverlay.setPrefSize(560, 340);
+        findElementOverlay.setMaxSize(560, 340);
+        findElementOverlay.setPadding(new Insets(12));
+        findElementOverlay.setStyle("-fx-background-color: " + PANEL_ELEVATED + "; -fx-border-color: " + SELECTION + "; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+        findElementOverlay.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.ESCAPE) {
+                hideFindElementOverlay("Find element closed");
+                e.consume();
+            } else if (e.getCode() == KeyCode.ENTER) {
+                runSelectedFindElement();
+                e.consume();
+            }
+        });
+    }
+
+    private void refreshFindElementResults() {
+        if (findElementSearch == null || findElementResults == null || activeDiagram == null) return;
+        String query = findElementSearch.getText();
+        findElementResults.getItems().setAll(findElementPresenter.search(activeDiagram, query));
+        if (!findElementResults.getItems().isEmpty()) {
+            findElementResults.getSelectionModel().selectFirst();
+        }
+    }
+
+    private void runSelectedFindElement() {
+        FindElementPresenter.SearchResult result = findElementResults.getSelectionModel().getSelectedItem();
+        if (result == null) {
+            String query = findElementSearch == null ? "" : findElementSearch.getText();
+            context.setText(query == null || query.isBlank() ? "Type a query to find an element" : "No element found for: " + query.trim());
+            return;
+        }
+        hideFindElementOverlay(null);
+        applyFindSelection(result.selection());
+        redraw();
+        context.setText("Found " + findElementKindLabel(result.kind()) + ": " + result.label());
+    }
+
+    private void hideFindElementOverlay(String message) {
+        if (findElementOverlay == null) return;
+        findElementOverlay.setVisible(false);
+        findElementOverlay.setManaged(false);
+        canvas.requestFocus();
+        if (message != null) context.setText(message);
     }
 
     private void applyFindSelection(FindElementPresenter.SelectionTarget selection) {
@@ -1676,6 +2027,35 @@ public class SchemeOnYouApplication extends Application {
         return file == null ? Optional.empty() : Optional.of(file.toPath());
     }
 
+    private void showDbImportDialog() {
+        new DbImportDialog(
+                stage,
+                project,
+                () -> activeDiagram == null ? null : activeDiagram.getId(),
+                connectionProfileStore,
+                metadataImporter,
+                (selectedDiagramId, importResult) -> {
+                    DbImportReplaceCommand command = new DbImportReplaceCommand(project, selectedDiagramId, importResult, dbImportReplacer);
+                    runMutating(command);
+                    return command.result();
+                },
+                result -> {
+                    project.findDiagram(result.diagramId()).ifPresent(diagram -> activeDiagram = diagram);
+                    selectedTableId = firstTableId().orElse(null);
+                    selectedColumnId = null;
+                    selectedForeignKeyId = null;
+                    selectedParticipantId = null;
+                    selectedMessageId = null;
+                    relationPin.clear();
+                    activeFkPreview = null;
+                    markDirty();
+                    refreshProjectLists();
+                    redraw();
+                    context.setText("Imported " + result.tableCount() + " tables into " + result.diagramName() + " — Ctrl+Z to undo");
+                }
+        ).show();
+    }
+
     private void exportSvg() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Export SVG");
@@ -1720,6 +2100,7 @@ public class SchemeOnYouApplication extends Application {
 
     private void undoCommand() {
         undo.undo().ifPresent(ignored -> {
+            afterProjectStructureChangedByHistory();
             markDirty();
             redraw();
             context.setText("Undo");
@@ -1728,10 +2109,20 @@ public class SchemeOnYouApplication extends Application {
 
     private void redoCommand() {
         undo.redo().ifPresent(ignored -> {
+            afterProjectStructureChangedByHistory();
             markDirty();
             redraw();
             context.setText("Redo");
         });
+    }
+
+    private void afterProjectStructureChangedByHistory() {
+        if (activeDiagram == null || project.findDiagram(activeDiagram.getId()).isEmpty()) {
+            activeDiagram = project.getDiagrams().isEmpty() ? null : project.getDiagrams().getFirst();
+        } else {
+            activeDiagram = project.findDiagram(activeDiagram.getId()).orElse(activeDiagram);
+        }
+        refreshProjectLists();
     }
 
     private void markDirty() {
@@ -1759,21 +2150,15 @@ public class SchemeOnYouApplication extends Application {
         layout.layout(activeDiagram);
         pruneMissingRelationPin();
         if (tableList != null) tableList.getItems().setAll(activeDiagram.getTables());
-        GraphicsContext g = canvas.getGraphicsContext2D();
-        g.setFill(Color.web(CANVAS_BG));
-        g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        g.setFont(uiFont(14));
-        CanvasState state = activeDiagram.getCanvasState();
-        g.save();
-        g.translate(-state.getViewportX() * state.getZoom(), -state.getViewportY() * state.getZoom());
-        g.scale(state.getZoom(), state.getZoom());
-        if (activeDiagram.getType() == DiagramType.DATABASE) drawDatabase(g); else drawSequence(g);
-        g.restore();
-        drawViewportStatus(g);
-        drawCanvasFocusRing(g);
         ValidationResult validation = validator.validate(activeDiagram);
+        canvasRenderer.render(canvas, activeDiagram, relationPin, activeFkPreview, canvasSelection(), validation);
         updateInspector(validation);
         updateContextAfterRedraw(validation);
+        updateStatusFocus();
+    }
+
+    private CanvasRenderer.Selection canvasSelection() {
+        return new CanvasRenderer.Selection(selectedTableId, selectedColumnId, selectedForeignKeyId, selectedParticipantId, selectedMessageId);
     }
 
     private void zoomCanvasBy(double factor) {
@@ -1811,7 +2196,7 @@ public class SchemeOnYouApplication extends Application {
     private void fitDiagramToCanvas() {
         if (activeDiagram == null || canvas == null) return;
         layout.layout(activeDiagram);
-        Rect bounds = diagramBounds();
+        Rect bounds = CanvasRenderer.diagramBounds(activeDiagram);
         CanvasState state = activeDiagram.getCanvasState();
         if (bounds == null) {
             state.actualSize();
@@ -1831,185 +2216,6 @@ public class SchemeOnYouApplication extends Application {
         redraw();
     }
 
-    private Rect diagramBounds() {
-        return activeDiagram.getCanvasState().getBoundsByElementId().values().stream()
-                .reduce(null, (acc, r) -> {
-                    if (acc == null) return r;
-                    double minX = Math.min(acc.x(), r.x());
-                    double minY = Math.min(acc.y(), r.y());
-                    double maxX = Math.max(acc.x() + acc.width(), r.x() + r.width());
-                    double maxY = Math.max(acc.y() + acc.height(), r.y() + r.height());
-                    return new Rect(minX, minY, maxX - minX, maxY - minY);
-                });
-    }
-
-    private void drawViewportStatus(GraphicsContext g) {
-        CanvasState state = activeDiagram.getCanvasState();
-        g.setFill(Color.web(TEXT_SECONDARY));
-        g.setFont(uiFont(11));
-        g.fillText("zoom " + Math.round(state.getZoom() * 100) + "% · view " + Math.round(state.getViewportX()) + "," + Math.round(state.getViewportY()), 12, canvas.getHeight() - 12);
-    }
-
-    private void drawCanvasFocusRing(GraphicsContext g) {
-        if (!canvas.isFocused()) return;
-        g.setStroke(Color.web(SELECTION));
-        g.setLineWidth(3);
-        g.strokeRect(1.5, 1.5, canvas.getWidth() - 3, canvas.getHeight() - 3);
-    }
-
-    private void drawDatabase(GraphicsContext g) {
-        ValidationResult validation = validator.validate(activeDiagram);
-        Set<String> errorElementIds = validation.issues().stream()
-                .filter(issue -> issue.severity() == ValidationIssue.Severity.ERROR)
-                .map(ValidationIssue::elementId)
-                .collect(Collectors.toSet());
-        Set<String> warningElementIds = validation.issues().stream()
-                .filter(issue -> issue.severity() == ValidationIssue.Severity.WARNING)
-                .map(ValidationIssue::elementId)
-                .collect(Collectors.toSet());
-        Set<String> warningTableIds = activeDiagram.getForeignKeys().stream()
-                .filter(fk -> warningElementIds.contains(fk.getId()) || errorElementIds.contains(fk.getId()))
-                .flatMap(fk -> java.util.stream.Stream.of(fk.getSourceTableId(), fk.getTargetTableId()))
-                .collect(Collectors.toSet());
-
-        for (ForeignKey fk : activeDiagram.getForeignKeys()) {
-            Rect a = activeDiagram.getCanvasState().getBoundsByElementId().get(fk.getSourceTableId());
-            Rect b = activeDiagram.getCanvasState().getBoundsByElementId().get(fk.getTargetTableId());
-            if (a != null && b != null) {
-                boolean error = errorElementIds.contains(fk.getId());
-                boolean warning = warningElementIds.contains(fk.getId());
-                boolean selectedFk = fk.getId().equals(selectedForeignKeyId);
-                Color edgeColor = Color.web(selectedFk ? SELECTION : error ? ERROR : warning ? WARNING : TEXT_SECONDARY);
-                drawDirectedEdge(g, a.center().x(), a.center().y(), b.center().x(), b.center().y(), edgeColor, selectedFk ? "FK selected" : error || warning ? "FK !" : "FK");
-                if (error || warning) {
-                    g.setFill(edgeColor);
-                    g.fillOval((a.center().x() + b.center().x()) / 2 - 4, (a.center().y() + b.center().y()) / 2 - 4, 8, 8);
-                }
-            }
-        }
-        for (DbTable table : activeDiagram.getTables()) {
-            Rect r = activeDiagram.getCanvasState().getBoundsByElementId().getOrDefault(table.getId(), new Rect(64,64,220,120));
-            boolean selected = table.getId().equals(selectedTableId);
-            boolean pinnedTable = relationPin.matchesTable(table.getId());
-            boolean columnDepth = selected && selectedColumnId != null;
-            boolean hasValidationWarning = warningTableIds.contains(table.getId());
-            g.setFill(Color.web(selected ? CARD_HEADER : CARD_BG));
-            g.fillRoundRect(r.x(), r.y(), r.width(), r.height(), 16, 16);
-            g.setStroke(Color.web(columnDepth ? SELECTION : selected ? PIN_COLOR : hasValidationWarning ? WARNING : FK_COLOR));
-            g.setLineWidth(columnDepth || selected ? 2.5 : 1.0);
-            g.strokeRoundRect(r.x(), r.y(), r.width(), r.height(), 16, 16);
-            g.setLineWidth(1.0);
-            g.setFill(Color.web(TEXT_PRIMARY));
-            g.fillText((hasValidationWarning ? "⚠ " : "") + table.getName(), r.x() + 12, r.y() + 24);
-            if (pinnedTable) drawRelationPinBadge(g, r.x() + r.width() - 54, r.y() + 8, "PIN");
-            int row = 0;
-            for (DbColumn column : table.getColumns()) {
-                double rowY = r.y() + 58 + row * 24;
-                boolean pinnedColumn = relationPin.matchesColumn(table.getId(), column.getId());
-                if (column.getId().equals(selectedColumnId)) {
-                    g.setFill(Color.web(PANEL_ELEVATED));
-                    g.fillRoundRect(r.x() + 10, rowY - 16, r.width() - 20, 22, 8, 8);
-                    g.setStroke(Color.web(SELECTION));
-                    g.strokeRoundRect(r.x() + 10, rowY - 16, r.width() - 20, 22, 8, 8);
-                    g.setFill(Color.web(TEXT_PRIMARY));
-                }
-                g.fillText((column.isPrimaryKey() ? "◆ " : "") + column.getName() + ": " + column.getType(), r.x() + 16, rowY);
-                if (pinnedColumn) drawRelationPinBadge(g, r.x() + r.width() - 54, rowY - 15, "PIN");
-                row++;
-            }
-        }
-        drawFkPreview(g);
-    }
-
-    private void drawDirectedEdge(GraphicsContext g, double x1, double y1, double x2, double y2, Color color, String label) {
-        g.save();
-        g.setStroke(color);
-        g.setFill(color);
-        g.setLineWidth(2.0);
-        g.strokeLine(x1, y1, x2, y2);
-        double angle = Math.atan2(y2 - y1, x2 - x1);
-        double arrowLength = 12.0;
-        double arrowWidth = 7.0;
-        double ax = x2 - Math.cos(angle) * 18.0;
-        double ay = y2 - Math.sin(angle) * 18.0;
-        double leftX = ax - Math.cos(angle) * arrowLength + Math.sin(angle) * arrowWidth;
-        double leftY = ay - Math.sin(angle) * arrowLength - Math.cos(angle) * arrowWidth;
-        double rightX = ax - Math.cos(angle) * arrowLength - Math.sin(angle) * arrowWidth;
-        double rightY = ay - Math.sin(angle) * arrowLength + Math.cos(angle) * arrowWidth;
-        g.fillPolygon(new double[]{ax, leftX, rightX}, new double[]{ay, leftY, rightY}, 3);
-        double midX = (x1 + x2) / 2.0;
-        double midY = (y1 + y2) / 2.0;
-        g.setFont(uiFont(10));
-        g.fillText(label, midX + 6, midY - 6);
-        g.restore();
-    }
-
-    private void drawRelationPinBadge(GraphicsContext g, double x, double y, String text) {
-        g.setFill(Color.web(WARNING));
-        g.fillRoundRect(x, y, 42, 18, 8, 8);
-        g.setStroke(Color.web(PK_COLOR));
-        g.strokeRoundRect(x, y, 42, 18, 8, 8);
-        g.setFill(Color.web(APP_BG));
-        g.setFont(uiFont(10));
-        g.fillText(text, x + 10, y + 13);
-    }
-
-    private void drawSequence(GraphicsContext g) {
-        if (activeDiagram.getParticipants().isEmpty()) {
-            g.setFill(Color.web(TEXT_SECONDARY));
-            g.fillText("Sequence diagram is empty. Use command palette: New/Add participant/message.", 64, 64);
-            return;
-        }
-
-        for (SequenceParticipant participant : activeDiagram.getParticipants()) {
-            Rect r = activeDiagram.getCanvasState().getBoundsByElementId().getOrDefault(participant.getId(), new Rect(64, 64, 140, 48));
-            boolean selected = participant.getId().equals(selectedParticipantId);
-            g.setFill(Color.web(selected ? CARD_HEADER : CARD_BG));
-            g.fillRoundRect(r.x(), r.y(), r.width(), r.height(), 14, 14);
-            g.setStroke(Color.web(selected ? PIN_COLOR : FK_COLOR));
-            g.setLineWidth(selected ? 2.5 : 1.5);
-            g.strokeRoundRect(r.x(), r.y(), r.width(), r.height(), 14, 14);
-            g.setFill(Color.web(TEXT_PRIMARY));
-            g.fillText(participant.getName(), r.x() + 12, r.y() + 29);
-            g.setStroke(Color.web(TEXT_SECONDARY));
-            g.setLineDashes(8, 6);
-            g.strokeLine(r.center().x(), r.y() + r.height(), r.center().x(), 760);
-            g.setLineDashes();
-        }
-
-        int index = 0;
-        for (SequenceMessage message : activeDiagram.getMessages()) {
-            Rect from = sequenceParticipantBounds(message.getFromParticipantId()).orElse(null);
-            Rect to = sequenceParticipantBounds(message.getToParticipantId()).orElse(null);
-            if (from == null || to == null) continue;
-            double y = sequenceMessageY(index);
-            double x1 = from.center().x();
-            double x2 = to.center().x();
-            boolean selected = message.getId().equals(selectedMessageId);
-            drawDirectedEdge(g, x1, y, x2, y, Color.web(selected ? SELECTION : TEXT_SECONDARY), message.getLabel());
-            if (selected) {
-                g.setStroke(Color.web(SELECTION));
-                g.setLineWidth(2.0);
-                g.strokeRoundRect(Math.min(x1, x2) + 6, y - 18, Math.abs(x2 - x1) - 12, 30, 8, 8);
-            }
-            if (message.isActivation()) {
-                double activationX = x2 - 6;
-                g.setFill(Color.web(PANEL_ELEVATED));
-                g.fillRoundRect(activationX, y, 12, 52, 6, 6);
-                g.setStroke(Color.web(SELECTION));
-                g.strokeRoundRect(activationX, y, 12, 52, 6, 6);
-            }
-            index++;
-        }
-    }
-
-    private Optional<Rect> sequenceParticipantBounds(String participantId) {
-        return activeDiagram.getParticipants().stream()
-                .filter(participant -> participant.getId().equals(participantId))
-                .findFirst()
-                .map(participant -> activeDiagram.getCanvasState().getBoundsByElementId().getOrDefault(participant.getId(), new Rect(64, 64, 140, 48)));
-    }
-
     private Label sectionLabel(String text) {
         Label label = new Label(text);
         label.getStyleClass().add("section-title");
@@ -2026,6 +2232,7 @@ public class SchemeOnYouApplication extends Application {
                 tableName(activeFkPreview.getSourceTableId()) + "." + columnName(activeFkPreview.getSourceTableId(), activeFkPreview.getSourceColumnId()),
                 tableName(activeFkPreview.getTargetTableId()) + "." + columnName(activeFkPreview.getTargetTableId(), activeFkPreview.getTargetColumnId()),
                 activeFkPreview.isKeepTargetPinnedAfterCreate(),
+                fkPreviewMeaningText(activeFkPreview),
                 fkPreviewValidationText(activeFkPreview)));
 
         InspectorPresenter.InspectorModel model = inspectorPresenter.inspect(activeDiagram, selection, fkPreview);
@@ -2082,6 +2289,8 @@ public class SchemeOnYouApplication extends Application {
         for (InspectorPresenter.Field field : section.fields()) {
             if (field.kind() == InspectorPresenter.FieldKind.TEXT && field.editField() == InspectorPresenter.EditField.SEQUENCE_PARTICIPANT_NAME) {
                 inspectorFields.getChildren().add(textEditor(field.label(), field.value(), field.editField(), value -> commitSequenceParticipantName(participant, value)));
+            } else if (field.kind() == InspectorPresenter.FieldKind.TEXT && field.editField() == InspectorPresenter.EditField.SEQUENCE_PARTICIPANT_TYPE) {
+                inspectorFields.getChildren().add(textEditor(field.label(), field.value(), field.editField(), value -> commitSequenceParticipantType(participant, value)));
             } else if (field.kind() == InspectorPresenter.FieldKind.ACTION_HINT) {
                 inspectorFields.getChildren().add(new Label(field.label() + ": " + field.value()));
             }
@@ -2098,8 +2307,16 @@ public class SchemeOnYouApplication extends Application {
         for (InspectorPresenter.Field field : section.fields()) {
             if (field.kind() == InspectorPresenter.FieldKind.TEXT && field.editField() == InspectorPresenter.EditField.SEQUENCE_MESSAGE_LABEL) {
                 inspectorFields.getChildren().add(textEditor(field.label(), field.value(), field.editField(), value -> commitSequenceMessageLabel(message, value)));
+            } else if (field.kind() == InspectorPresenter.FieldKind.TEXT && field.editField() == InspectorPresenter.EditField.SEQUENCE_MESSAGE_TYPE) {
+                inspectorFields.getChildren().add(textEditor(field.label(), field.value(), field.editField(), value -> commitSequenceMessageType(message, value)));
+            } else if (field.kind() == InspectorPresenter.FieldKind.TEXT && field.editField() == InspectorPresenter.EditField.SEQUENCE_MESSAGE_ORDER) {
+                inspectorFields.getChildren().add(textEditor(field.label(), field.value(), field.editField(), value -> commitSequenceMessageOrder(message, value)));
             } else if (field.kind() == InspectorPresenter.FieldKind.CHECKBOX && field.editField() == InspectorPresenter.EditField.SEQUENCE_MESSAGE_ACTIVATION) {
                 inspectorFields.getChildren().add(checkBox(field.label(), field.booleanValue(), field.editField(), value -> commitSequenceMessageActivation(message, value)));
+            } else if (field.kind() == InspectorPresenter.FieldKind.TEXT && field.editField() == InspectorPresenter.EditField.SEQUENCE_MESSAGE_FROM) {
+                inspectorFields.getChildren().add(textEditor(field.label(), field.value(), field.editField(), value -> commitSequenceMessageEndpoint(message, true, value)));
+            } else if (field.kind() == InspectorPresenter.FieldKind.TEXT && field.editField() == InspectorPresenter.EditField.SEQUENCE_MESSAGE_TO) {
+                inspectorFields.getChildren().add(textEditor(field.label(), field.value(), field.editField(), value -> commitSequenceMessageEndpoint(message, false, value)));
             } else if (field.kind() == InspectorPresenter.FieldKind.READ_ONLY || field.kind() == InspectorPresenter.FieldKind.ACTION_HINT) {
                 inspectorFields.getChildren().add(new Label(field.label() + ": " + field.value()));
             }
@@ -2137,21 +2354,40 @@ public class SchemeOnYouApplication extends Application {
 
     private TextField textField(String original, InspectorPresenter.EditField editField, java.util.function.Consumer<String> commit) {
         TextField field = new TextField(original);
-        final boolean[] cancelled = {false};
-        field.setOnAction(event -> commitTextField(field, editField, original, commit));
+        field.setEditable(false);
+        field.setFocusTraversable(true);
+        field.getStyleClass().add("inspector-view-field");
+        final boolean[] editing = {false};
         field.focusedProperty().addListener((obs, old, focused) -> {
-            if (!focused) {
-                if (cancelled[0]) cancelled[0] = false;
-                else commitTextField(field, editField, original, commit);
+            if (!focused && editing[0]) {
+                editing[0] = false;
+                field.setEditable(false);
+                field.setText(original);
+                context.setText("Inspector edit cancelled");
             }
         });
         field.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() == KeyCode.ESCAPE) {
-                cancelled[0] = true;
-                field.setText(original);
-                inspectorPanel.requestFocus();
-                context.setText("Inspector edit cancelled");
+            if (event.getCode() == KeyCode.ENTER) {
+                if (editing[0]) {
+                    editing[0] = false;
+                    field.setEditable(false);
+                    commitTextField(field, editField, original, commit);
+                } else {
+                    editing[0] = true;
+                    field.setEditable(true);
+                    field.requestFocus();
+                    field.selectAll();
+                    context.setText("Inspector edit mode: Enter saves, Esc cancels");
+                }
                 event.consume();
+            } else if (event.getCode() == KeyCode.ESCAPE) {
+                if (editing[0]) {
+                    editing[0] = false;
+                    field.setEditable(false);
+                    field.setText(original);
+                    context.setText("Inspector edit cancelled");
+                    event.consume();
+                }
             }
         });
         return field;
@@ -2169,8 +2405,31 @@ public class SchemeOnYouApplication extends Application {
     private CheckBox checkBox(String label, boolean original, InspectorPresenter.EditField editField, java.util.function.Consumer<Boolean> commit) {
         CheckBox box = new CheckBox(label);
         box.setSelected(original);
-        box.setOnAction(event -> {
-            inspectorPresenter.booleanEdit(editField, original, box.isSelected()).ifPresent(decision -> commit.accept(decision.booleanValue()));
+        box.setFocusTraversable(true);
+        final boolean[] editing = {false};
+        box.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                if (editing[0]) {
+                    editing[0] = false;
+                    inspectorPresenter.booleanEdit(editField, original, box.isSelected()).ifPresent(decision -> commit.accept(decision.booleanValue()));
+                } else {
+                    editing[0] = true;
+                    context.setText("Inspector edit mode: Space changes value, Enter saves, Esc cancels");
+                }
+                event.consume();
+            } else if (event.getCode() == KeyCode.ESCAPE) {
+                if (editing[0]) {
+                    editing[0] = false;
+                    box.setSelected(original);
+                    context.setText("Inspector edit cancelled");
+                    event.consume();
+                }
+            } else if (!editing[0] && event.getCode() == KeyCode.SPACE) {
+                event.consume();
+            }
+        });
+        box.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
+            if (!editing[0]) event.consume();
         });
         return box;
     }
@@ -2205,16 +2464,75 @@ public class SchemeOnYouApplication extends Application {
         context.setText("Renamed participant: " + value);
     }
 
+    private void commitSequenceParticipantType(SequenceParticipant participant, String value) {
+        try {
+            SequenceParticipantType type = SequenceParticipantType.fromStorageName(value, "sequence participant type");
+            runMutating(new EditValueCommand<>(participant, "sequence.participant.type", "Set participant type", SequenceParticipant::getType, SequenceParticipant::setType, type));
+            redraw();
+            context.setText("Participant type: " + type.storageName());
+        } catch (IOException e) {
+            context.setText("Invalid participant type: " + value + " (actor/service/database/external_system)");
+        }
+    }
+
     private void commitSequenceMessageLabel(SequenceMessage message, String value) {
         runMutating(new EditValueCommand<>(message, "sequence.message.label", "Edit message label", SequenceMessage::getLabel, SequenceMessage::setLabel, value));
         redraw();
         context.setText("Changed message label: " + value);
     }
 
+    private void commitSequenceMessageType(SequenceMessage message, String value) {
+        try {
+            SequenceMessageType type = SequenceMessageType.fromStorageName(value, "sequence message type");
+            runMutating(new EditValueCommand<>(message, "sequence.message.type", "Set message type", SequenceMessage::getType, SequenceMessage::setType, type));
+            redraw();
+            context.setText("Message type: " + type.storageName());
+        } catch (IOException e) {
+            context.setText("Invalid message type: " + value + " (sync/async/return/self_call)");
+        }
+    }
+
+    private void commitSequenceMessageOrder(SequenceMessage message, String value) {
+        try {
+            int order = Integer.parseInt(value);
+            if (order <= 0) throw new NumberFormatException("order must be positive");
+            runMutating(new EditValueCommand<>(message, "sequence.message.order", "Set message order", SequenceMessage::getOrder, SequenceMessage::setOrder, order));
+            redraw();
+            context.setText("Message order: " + order);
+        } catch (NumberFormatException e) {
+            context.setText("Invalid message order: " + value + " (positive integer)");
+        }
+    }
+
     private void commitSequenceMessageActivation(SequenceMessage message, boolean value) {
         runMutating(new EditValueCommand<>(message, "sequence.message.activation", "Set message activation", SequenceMessage::isActivation, SequenceMessage::setActivation, value));
         redraw();
         context.setText("Message activation: " + (value ? "on" : "off"));
+    }
+
+    private void commitSequenceMessageEndpoint(SequenceMessage message, boolean source, String value) {
+        Optional<String> participantId = resolveParticipantId(value);
+        if (participantId.isEmpty()) {
+            context.setText("Unknown participant: " + value + " (use participant name or id)");
+            return;
+        }
+        if (source) {
+            runMutating(new EditValueCommand<>(message, "sequence.message.from", "Set message source", SequenceMessage::getFromParticipantId, SequenceMessage::setFromParticipantId, participantId.get()));
+            context.setText("Message source: " + participantName(participantId.get()));
+        } else {
+            runMutating(new EditValueCommand<>(message, "sequence.message.to", "Set message target", SequenceMessage::getToParticipantId, SequenceMessage::setToParticipantId, participantId.get()));
+            context.setText("Message target: " + participantName(participantId.get()));
+        }
+        redraw();
+    }
+
+    private Optional<String> resolveParticipantId(String value) {
+        String needle = value == null ? "" : value.trim();
+        if (needle.isBlank()) return Optional.empty();
+        return activeDiagram.getParticipants().stream()
+                .filter(participant -> participant.getId().equals(needle) || participant.getName().equalsIgnoreCase(needle))
+                .map(SequenceParticipant::getId)
+                .findFirst();
     }
 
     private String participantName(String participantId) {
@@ -2233,7 +2551,7 @@ public class SchemeOnYouApplication extends Application {
         Label title = new Label("FK preview");
         Label source = chip("Source", tableName(preview.getSourceTableId()) + "." + columnName(preview.getSourceTableId(), preview.getSourceColumnId()));
         Label target = chip("Target", tableName(preview.getTargetTableId()) + "." + columnName(preview.getTargetTableId(), preview.getTargetColumnId()));
-        Label direction = new Label("Creates: source column references target column");
+        Label direction = new Label("Creates: " + fkPreviewMeaningText(preview));
         CheckBox keepPinned = new CheckBox("Keep target pinned after create");
         keepPinned.setSelected(preview.isKeepTargetPinnedAfterCreate());
         keepPinned.setOnAction(e -> {
@@ -2262,32 +2580,6 @@ public class SchemeOnYouApplication extends Application {
         return label;
     }
 
-    private void drawFkPreview(GraphicsContext g) {
-        if (activeFkPreview == null) return;
-        Rect source = activeDiagram.getCanvasState().getBoundsByElementId().get(activeFkPreview.getSourceTableId());
-        Rect target = activeDiagram.getCanvasState().getBoundsByElementId().get(activeFkPreview.getTargetTableId());
-        if (source == null || target == null) return;
-        g.save();
-        g.setStroke(Color.web(WARNING));
-        g.setLineWidth(2.5);
-        g.setLineDashes(8, 6);
-        g.strokeLine(source.center().x(), source.center().y(), target.center().x(), target.center().y());
-        g.setLineDashes(0);
-        drawPreviewChip(g, source.center().x() - 38, source.center().y() - 24, "SOURCE");
-        drawPreviewChip(g, target.center().x() - 38, target.center().y() - 24, "TARGET");
-        g.restore();
-    }
-
-    private void drawPreviewChip(GraphicsContext g, double x, double y, String text) {
-        g.setFill(Color.web(WARNING));
-        g.fillRoundRect(x, y, 76, 22, 10, 10);
-        g.setStroke(Color.web(PK_COLOR));
-        g.strokeRoundRect(x, y, 76, 22, 10, 10);
-        g.setFill(Color.web(APP_BG));
-        g.setFont(uiFont(10));
-        g.fillText(text, x + 14, y + 15);
-    }
-
     private String fkPreviewContextLine(FkPreview preview) {
         List<String> errors = fkPreviewErrors(preview);
         if (!errors.isEmpty()) return "FK preview blocked: " + errors.getFirst() + " • Esc Cancel";
@@ -2296,13 +2588,19 @@ public class SchemeOnYouApplication extends Application {
         String keep = preview.isKeepTargetPinnedAfterCreate() ? " • Keep target pinned" : "";
         return "FK preview: Source " + tableName(preview.getSourceTableId()) + "." + columnName(preview.getSourceTableId(), preview.getSourceColumnId())
                 + " → Target " + tableName(preview.getTargetTableId()) + "." + columnName(preview.getTargetTableId(), preview.getTargetColumnId())
+                + " • " + fkPreviewMeaningText(preview)
                 + " • X Swap • Enter Create • Esc Cancel" + keep + suffix;
     }
 
     private String fkTargetSelectionContextLine(FkPreview preview) {
         return "FK target select: Source " + tableName(preview.getSourceTableId()) + "." + columnName(preview.getSourceTableId(), preview.getSourceColumnId())
                 + " → Target " + tableName(preview.getTargetTableId()) + "." + columnName(preview.getTargetTableId(), preview.getTargetColumnId())
+                + " • " + fkPreviewMeaningText(preview)
                 + " • Arrows/Home/End choose target • Enter Create • Esc Cancel";
+    }
+
+    private String fkPreviewMeaningText(FkPreview preview) {
+        return FkPreviewSemantics.relationMeaningLabel(activeDiagram, preview);
     }
 
     private String fkPreviewValidationText(FkPreview preview) {
@@ -2317,32 +2615,11 @@ public class SchemeOnYouApplication extends Application {
     }
 
     private List<String> fkPreviewErrors(FkPreview preview) {
-        Optional<DbTable> source = activeDiagram.findTable(preview.getSourceTableId());
-        Optional<DbTable> target = activeDiagram.findTable(preview.getTargetTableId());
-        if (source.isEmpty() || target.isEmpty()) return List.of("source or target table is missing");
-        Optional<DbColumn> sourceColumn = source.get().findColumn(preview.getSourceColumnId());
-        Optional<DbColumn> targetColumn = target.get().findColumn(preview.getTargetColumnId());
-        if (sourceColumn.isEmpty() || targetColumn.isEmpty()) return List.of("source or target column is missing");
-        if (preview.getSourceTableId().equals(preview.getTargetTableId()) && preview.getSourceColumnId().equals(preview.getTargetColumnId())) {
-            return List.of("source and target are the same column");
-        }
-        return List.of();
+        return FkPreviewSemantics.errors(activeDiagram, preview);
     }
 
     private List<String> fkPreviewWarnings(FkPreview preview) {
-        if (!fkPreviewErrors(preview).isEmpty()) return List.of();
-        DbTable source = activeDiagram.findTable(preview.getSourceTableId()).orElseThrow();
-        DbTable target = activeDiagram.findTable(preview.getTargetTableId()).orElseThrow();
-        DbColumn sourceColumn = source.findColumn(preview.getSourceColumnId()).orElseThrow();
-        DbColumn targetColumn = target.findColumn(preview.getTargetColumnId()).orElseThrow();
-        java.util.ArrayList<String> warnings = new java.util.ArrayList<>();
-        if (!sourceColumn.getType().equalsIgnoreCase(targetColumn.getType())) {
-            warnings.add("source type " + sourceColumn.getType() + " differs from target type " + targetColumn.getType());
-        }
-        if (!targetColumn.isPrimaryKey() && !targetColumn.isUnique()) {
-            warnings.add("target column is not PK or unique; relation meaning may be ambiguous");
-        }
-        return warnings;
+        return FkPreviewSemantics.warnings(activeDiagram, preview);
     }
 
     private String tableName(String tableId) {

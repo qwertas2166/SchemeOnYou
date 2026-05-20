@@ -86,3 +86,7 @@ SEE принял решения:
 - `026` — parent закрываем; дополнительных presenter seams после inspector/editing не требуется как условие parent.
 - `007` — parent закрываем; дополнительный sequence UI polish не нужен как условие закрытия parent.
 - `012` — достаточно как ранее зафиксировано; дополнительных работ не добавлять.
+
+## 2026-05-19 correction — issue history paths
+
+`033-sync-human-requirements-shortcut-model.md` was later completed; its canonical history stub is `machine/issue/sprint_9/033-sync-human-requirements-shortcut-model.md` with `status - done`. Older `sprint_6/033`, `backlog/033`, or `work/033` mentions are historical only. Older `work/024` and `work/032` mentions are also historical; see sprint_9 history stubs.

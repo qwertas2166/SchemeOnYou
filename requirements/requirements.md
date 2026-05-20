@@ -27,6 +27,7 @@
 - Захардкоженная keymap.
 - Command palette с fuzzy search.
 - Простая захардкоженная раскладка элементов.
+- Импорт metadata таблиц из live PostgreSQL connection для DB-диаграммы: таблицы, колонки, single-column FK и primary key metadata; composite primary key импортируется как table-level constraint, composite foreign key в MVP пропускается с явным warning.
 - Сохранение/открытие проекта.
 - Git-friendly формат хранения.
 - Undo/redo для изменяющих операций.
@@ -39,7 +40,8 @@
 - Class/use case/activity/state/component/deployment diagrams.
 - PlantUML export/import.
 - Mermaid export/import.
-- SQL DDL import/export.
+- SQL DDL text import/export.
+- Full grouped/composite foreign key model/import; composite FK из PostgreSQL metadata деградирует безопасно: constraint пропускается с warning, без misleading per-column edges.
 - Sequence combined fragments:
   - alt;
   - opt;
@@ -102,6 +104,10 @@
   - nullable/not null;
   - primary key flag;
   - foreign key reference.
+- DB import policy:
+  - single-column foreign keys import as FK edges;
+  - composite primary keys import as deterministic table-level constraints;
+  - composite foreign keys are skipped with warning in MVP, not split into misleading independent FK edges.
 - Связи:
   - foreign key;
   - one-to-one;
@@ -234,7 +240,7 @@
 - PDF export.
 - PlantUML export/import.
 - Mermaid export/import.
-- SQL DDL import/export.
+- SQL DDL text import/export.
 
 ## 7. Архитектура
 

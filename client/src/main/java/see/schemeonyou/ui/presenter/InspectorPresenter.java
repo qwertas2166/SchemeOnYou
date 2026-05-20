@@ -2,13 +2,17 @@ package see.schemeonyou.ui.presenter;
 
 import see.schemeonyou.model.DbColumn;
 import see.schemeonyou.model.DbTable;
+import see.schemeonyou.model.DbTableConstraint;
+import see.schemeonyou.model.DbTableConstraintType;
 import see.schemeonyou.model.Diagram;
 import see.schemeonyou.model.SequenceMessage;
 import see.schemeonyou.model.SequenceParticipant;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.Optional;
 
 public class InspectorPresenter {
@@ -42,7 +46,7 @@ public class InspectorPresenter {
         fkPreview.ifPresent(preview -> sections.add(new Section("FK preview", List.of(
                 Field.readOnly("Source", preview.sourceLabel()),
                 Field.readOnly("Target", preview.targetLabel()),
-                Field.readOnly("Creates", "source column references target column"),
+                Field.readOnly("Creates", preview.meaningText()),
                 Field.checkbox(EditField.FK_PREVIEW_KEEP_TARGET_PINNED, "Keep target pinned after create", preview.keepTargetPinnedAfterCreate()),
                 Field.readOnly("Validation", preview.validationText()),
                 Field.actionHint("Actions", "X Swap · Enter Create · Esc Cancel")
@@ -72,9 +76,11 @@ public class InspectorPresenter {
     private Section sequenceMessageSection(Diagram diagram, SequenceMessage message) {
         return new Section("Sequence message", List.of(
                 Field.text(EditField.SEQUENCE_MESSAGE_LABEL, "Label", message.getLabel()),
+                Field.text(EditField.SEQUENCE_MESSAGE_TYPE, "Type", message.getType().storageName()),
+                Field.text(EditField.SEQUENCE_MESSAGE_ORDER, "Order", Integer.toString(message.getOrder())),
                 Field.checkbox(EditField.SEQUENCE_MESSAGE_ACTIVATION, "Activation", message.isActivation()),
-                Field.readOnly("From", participantName(diagram, message.getFromParticipantId())),
-                Field.readOnly("To", participantName(diagram, message.getToParticipantId())),
+                Field.text(EditField.SEQUENCE_MESSAGE_FROM, "From", participantName(diagram, message.getFromParticipantId())),
+                Field.text(EditField.SEQUENCE_MESSAGE_TO, "To", participantName(diagram, message.getToParticipantId())),
                 Field.actionHint("Delete", "Delete / Space D")
         ));
     }
@@ -82,6 +88,7 @@ public class InspectorPresenter {
     private Section sequenceParticipantSection(SequenceParticipant participant) {
         return new Section("Sequence participant", List.of(
                 Field.text(EditField.SEQUENCE_PARTICIPANT_NAME, "Name", participant.getName()),
+                Field.text(EditField.SEQUENCE_PARTICIPANT_TYPE, "Type", participant.getType().storageName()),
                 Field.actionHint("Delete", "Delete / Space D")
         ));
     }
@@ -90,6 +97,9 @@ public class InspectorPresenter {
         List<Field> fields = new ArrayList<>();
         fields.add(Field.text(EditField.TABLE_NAME, "Name", table.getName()));
         fields.add(Field.readOnly("Columns", Integer.toString(table.getColumns().size())));
+        if (!table.getConstraints().isEmpty()) {
+            fields.add(Field.readOnly("Constraints", constraintSummary(table)));
+        }
         for (DbColumn column : table.getColumns()) {
             boolean selected = selectedColumnId.filter(column.getId()::equals).isPresent();
             String prefix = selected ? "Selected column: " : "Column: ";
@@ -101,6 +111,22 @@ public class InspectorPresenter {
             fields.add(Field.checkbox(EditField.COLUMN_UNIQUE, "Unique", column.isUnique(), column.getId(), selected));
         }
         return new Section("Table", fields);
+    }
+
+    private String constraintSummary(DbTable table) {
+        Map<String, String> columnNames = table.getColumns().stream()
+                .collect(Collectors.toMap(DbColumn::getId, DbColumn::getName));
+        return table.getConstraints().stream()
+                .map(constraint -> constraintLabel(constraint, columnNames))
+                .collect(Collectors.joining("; "));
+    }
+
+    private String constraintLabel(DbTableConstraint constraint, Map<String, String> columnNames) {
+        String type = constraint.type() == DbTableConstraintType.COMPOSITE_PRIMARY_KEY ? "Composite PK" : "Composite unique";
+        String columns = constraint.columnIds().stream()
+                .map(columnId -> columnNames.getOrDefault(columnId, columnId))
+                .collect(Collectors.joining(", "));
+        return type + " (" + columns + ")";
     }
 
     private Optional<SequenceParticipant> findParticipant(Diagram diagram, String id) {
@@ -185,10 +211,11 @@ public class InspectorPresenter {
         }
     }
 
-    public record FkPreviewModel(String sourceLabel, String targetLabel, boolean keepTargetPinnedAfterCreate, String validationText) {
+    public record FkPreviewModel(String sourceLabel, String targetLabel, boolean keepTargetPinnedAfterCreate, String meaningText, String validationText) {
         public FkPreviewModel {
             sourceLabel = Objects.requireNonNull(sourceLabel);
             targetLabel = Objects.requireNonNull(targetLabel);
+            meaningText = Objects.requireNonNull(meaningText);
             validationText = Objects.requireNonNull(validationText);
         }
     }
@@ -209,8 +236,13 @@ public class InspectorPresenter {
         COLUMN_PRIMARY_KEY,
         COLUMN_UNIQUE,
         SEQUENCE_PARTICIPANT_NAME,
+        SEQUENCE_PARTICIPANT_TYPE,
         SEQUENCE_MESSAGE_LABEL,
+        SEQUENCE_MESSAGE_TYPE,
+        SEQUENCE_MESSAGE_ORDER,
         SEQUENCE_MESSAGE_ACTIVATION,
+        SEQUENCE_MESSAGE_FROM,
+        SEQUENCE_MESSAGE_TO,
         FK_PREVIEW_KEEP_TARGET_PINNED
     }
 }

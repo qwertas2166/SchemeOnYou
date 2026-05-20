@@ -1,6 +1,6 @@
-яёsummary - Отделить названия таблиц визуальной полосой
+summary - Отделить названия таблиц визуальной полосой
 
-status - planned
+status - done
 priority - mid
 cost - S
 
@@ -26,3 +26,9 @@ dependencies/risks -
 - Risk: changing header/body geometry can desync hit-testing, selection bounds, drag bounds, and SVG export; update all affected rendering paths together.
 
 progress - 2026-05-17 01:06 MSK: moved from backlog to sprint_11 during hourly backlog analysis; priority set to {prio} ({reason}).
+
+progress - 2026-05-19 11:00 MSK scheduler-2: backlog/ пуст; взята самая компактная подходящая задача из открытых sprint issues (mid/S), потому что high/M work уже частично активен и шире для cron-slice. Добавлен стабильный divider между заголовком таблицы и колонками в canvas renderer; SVG export получил matching `divider` line для parity.
+
+validation -
+- 2026-05-19 11:00 MSK: `JAVA_HOME=/home/openclaw/workspace/java/openjdk-25.0.2 PATH=/home/openclaw/workspace/java/apache-maven-3.9.11/bin:/home/openclaw/workspace/java/openjdk-25.0.2/bin:$PATH mvn -q -pl core -Dtest=SvgExporterTest test` — passed.
+- 2026-05-19 11:00 MSK: `JAVA_HOME=/home/openclaw/workspace/java/openjdk-25.0.2 PATH=/home/openclaw/workspace/java/apache-maven-3.9.11/bin:/home/openclaw/workspace/java/openjdk-25.0.2/bin:$PATH mvn -q -pl client -am test && git diff --check` — passed.

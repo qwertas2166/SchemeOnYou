@@ -1,5 +1,5 @@
 summary - Перевести частые keyboard-first действия с blocking dialogs на встроенные preview/overlay flows
-status - work
+status - done
 priority - high
 cost - M
 
@@ -20,5 +20,13 @@ dependencies/risks -
 - Related to done issues `002`, `006`, `009`, `012`, but не дублирует их: цель — снять оставшийся modal UX debt.
 - Risk: может разрастись; если scope становится L, резать на palette/find и destructive-confirm подзадачи.
 
+result - Frequent editor actions now use non-blocking canvas overlays/panels for command palette, find element, rename selected, delete confirmation, and join-table preview/confirmation. Native file/open/save/export lifecycle dialogs remain out of scope.
+check - JAVA_HOME=/home/openclaw/workspace/java/openjdk-25.0.2 PATH=/home/openclaw/workspace/java/apache-maven-3.9.11/bin:/home/openclaw/workspace/java/openjdk-25.0.2/bin:$PATH mvn -q -pl client -am -Dtest=CommandRouterTest -Dsurefire.failIfNoSpecifiedTests=false test; git diff --check -- client/src/main/java/see/schemeonyou/SchemeOnYouApplication.java machine/issue/sprint_2/015-non-modal-keyboard-flows-for-frequent-actions.md
+
 progress -
 - 2026-05-16 scheduler-2: взят первый безопасный slice — command palette overlay; заменён blocking `Dialog.showAndWait()` на встроенную non-blocking панель в canvas stack с Enter/Esc и фильтрацией через existing `CommandRouter`.
+- 2026-05-19 21:00 MSK scheduler-2: backlog/ пуст; продолжена highest-priority подходящая активная high/M задача. Перевел `Find element` с blocking `TextInputDialog.showAndWait()` на встроенный non-blocking overlay в canvas stack: поиск обновляется по вводу, Enter выбирает первый/выбранный результат, Esc закрывает overlay и возвращает focus на canvas. Проверка: `mvn -q -pl client -am -Dtest=CommandRouterTest -Dsurefire.failIfNoSpecifiedTests=false test` passed.
+- 2026-05-19 22:00 MSK scheduler-2: backlog/ пуст; продолжена highest-priority активная high/M задача. Перевел `Rename selected` с blocking `TextInputDialog.showAndWait()` на встроенный non-blocking canvas overlay: поле предзаполняется именем выбранной таблицы, Enter применяет undoable `RenameTableCommand`, Esc отменяет и возвращает focus на canvas. Verification: `mvn -q -pl client -am -Dtest=CommandRouterTest -Dsurefire.failIfNoSpecifiedTests=false test`, `git diff --check -- client/src/main/java/see/schemeonyou/SchemeOnYouApplication.java` passed. Статус оставлен `work`: delete/join-table confirm остаются modal slices.
+- 2026-05-19 22:30 MSK scheduler-2: backlog/ пуст; продолжена highest-priority активная high/M задача. Перевел `Delete selected` с blocking `Alert.showAndWait()` на non-blocking canvas confirmation overlay: preview показывает context line, Enter подтверждает через existing undoable delete controller, Esc/Cancel отменяет и возвращает focus на canvas. Verification: `mvn -q -pl client -am -Dtest=CommandRouterTest -Dsurefire.failIfNoSpecifiedTests=false test`, `git diff --check -- client/src/main/java/see/schemeonyou/SchemeOnYouApplication.java` passed. Статус остается `work`: join-table confirmation еще modal slice.
+
+- 2026-05-19 23:30 MSK scheduler-2: backlog/ пуст; завершена highest-priority активная high/M задача. Перевел join-table preview/confirmation с blocking `Alert.showAndWait()` на non-blocking canvas overlay: preview показывает participants/columns/action, Enter создает join table через existing undoable command, Esc/Cancel отменяет и возвращает focus на canvas. После этого command palette/find/rename/delete/join frequent editor flows закрыты, статус `done`. Verification: `mvn -q -pl client -am -Dtest=CommandRouterTest -Dsurefire.failIfNoSpecifiedTests=false test`, `git diff --check -- client/src/main/java/see/schemeonyou/SchemeOnYouApplication.java machine/issue/sprint_2/015-non-modal-keyboard-flows-for-frequent-actions.md` passed.

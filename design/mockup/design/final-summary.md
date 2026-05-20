@@ -28,7 +28,7 @@ Latest version: `db-diagram-ui-ux-v07.md`.
 - Текущий runtime shortcut model: `0` top menu, `1` left menu, `2` canvas, `3` inspector переключают крупные области напрямую; `Tab` остаётся только для traversal внутри панели, диалога или picker. Историческое решение v07 с `F6` / `Shift+F6` заменено этой схемой.
 - Canvas navigation использует стрелки, selection depth и `Enter` для входа из table depth в column depth.
 - `Space` на canvas открывает progressive command sheet: видны prefix, допустимые следующие клавиши, `Backspace`, `Esc` и feedback на неверные keys.
-- Основные chords: `Space A T` add table, `Space A C` add column, `Space A F` add FK, `Space A J` add join table, `Space P` pin relation, `Space U` unpin, `Space E` select FK edge, `Space G T/G S` go target/source, `Space L D/L S` layout.
+- Основные active chords: `Space A T` add table, `Space A C` add column, `Space A F` add FK, `Space A J` add join table, `Space P` pin relation, `Space U` unpin, `Space E` edit selected, `Space G S` find element, `Space L D` layout diagram. Future/non-MVP: `Space G T` go target, `Space L S` layout selected cluster, FK edge picker on a non-conflicting chord.
 - FK creation строится через source/target role chips, явное превью, локальный `X Swap` и понятную derived meaning строку.
 - Повторное создание FK решается не временным shortcut, а checkbox `Keep target pinned after create`, который должен быть выключен по умолчанию.
 - Relation semantics выводятся из структуры: FK + unique/PK/composite constraints; отдельная editable relationship metadata не вводится.

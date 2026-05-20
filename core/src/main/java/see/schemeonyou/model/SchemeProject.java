@@ -1,11 +1,14 @@
 package see.schemeonyou.model;
 
+import lombok.Getter;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+@Getter
 public class SchemeProject {
     public static final int STORAGE_VERSION = 1;
 
@@ -29,12 +32,7 @@ public class SchemeProject {
         this.createdAt = Objects.requireNonNull(createdAt);
         this.updatedAt = Objects.requireNonNull(updatedAt);
     }
-    public String getId() { return id; }
-    public String getName() { return name; }
     public void setName(String name) { this.name = Objects.requireNonNull(name); touch(); }
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
-    public List<Diagram> getDiagrams() { return diagrams; }
     public Optional<Diagram> findDiagram(String diagramId) { return diagrams.stream().filter(d -> d.getId().equals(diagramId)).findFirst(); }
     public void touch() { updatedAt = Instant.now(); }
 }

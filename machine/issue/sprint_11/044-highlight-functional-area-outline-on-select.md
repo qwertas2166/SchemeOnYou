@@ -1,6 +1,6 @@
 summary - Выделять контур выбранной функциональной области
 
-status - planned
+status - done
 priority - high
 cost - S
 
@@ -28,3 +28,7 @@ dependencies/risks -
 - Risk: outline styling may conflict with existing inner focus rings; keep area outline visually distinct and avoid layout-affecting border width changes.
 
 progress - 2026-05-17 01:06 MSK: moved from backlog to sprint_11 during hourly backlog analysis; priority set to {prio} ({reason}).
+progress - 2026-05-17 21:30 MSK scheduler-2: backlog/ empty; took highest-priority suitable planned task (high/S). Added active functional-area pseudo-class driven by scene focus owner, so direct area shortcuts and Tab movement highlight the containing top/left/canvas/inspector/status fieldset without layout-changing border width.
+validation -
+- 2026-05-17 21:30 MSK: `JAVA_HOME=/home/openclaw/workspace/java/openjdk-25.0.2 PATH=/home/openclaw/workspace/java/apache-maven-3.9.11/bin:/home/openclaw/workspace/java/openjdk-25.0.2/bin:$PATH mvn -q test` — passed.
+- 2026-05-17 21:30 MSK: `JAVA_HOME=/home/openclaw/workspace/java/openjdk-25.0.2 PATH=/home/openclaw/workspace/java/apache-maven-3.9.11/bin:/home/openclaw/workspace/java/openjdk-25.0.2/bin:$PATH mvn -q -DskipTests package && git diff --check` — passed.

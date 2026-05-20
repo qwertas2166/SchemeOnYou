@@ -12,7 +12,7 @@ The v06 design is close, but a final critique finds three remaining UX/shortcut 
 
 v07 resolves those by adding a strict **single context line priority model**, replacing `R Repeat` with an explicit **Keep target pinned** option in relation previews, and making the Space command overlay a small **progressive command sheet**. This is a UX simplification, not a new feature expansion.
 
-No SQL import/export, crow's foot notation, required manual keyboard positioning, or full modeling-suite constraint editor is added.
+No SQL DDL text import/export, crow's foot notation, required manual keyboard positioning, or full modeling-suite constraint editor is added. PostgreSQL metadata import from a live connection is an explicit MVP capability and must not be treated as that excluded DDL-text feature.
 
 ## Goal
 
@@ -626,7 +626,7 @@ Add foreign key orders.user_id users.id
 Add join table users roles
 ```
 
-The structured input remains intentionally small and must not grow into hidden SQL/DDL import.
+The structured input remains intentionally small and must not grow into hidden SQL/DDL text import. PostgreSQL metadata import is handled only through the explicit live-connection import flow.
 
 ## Validation, undo, and feedback UX
 

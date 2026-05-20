@@ -1,5 +1,5 @@
 summary - Добавить MVP scale/performance smoke для 200 элементов и 500 связей
-status - planned
+status - done
 priority - mid
 cost - M
 
@@ -19,3 +19,6 @@ dependencies/risks -
 - Related to `work/010-tests-and-release-gates.md`, но scope только nonfunctional scale smoke, не общий test strategy.
 - Related to `sprint_2/017-release-readiness-environment-and-ci-parity.md` for where the command is documented.
 - Risk: strict timing thresholds can be flaky across hosts; start with baseline/report mode if needed.
+
+progress -
+- 2026-05-19 11:30 MSK scheduler-2: backlog dir was empty; per `machine/issue/consistency-checklist.md` selected planned sprint issue. Added core-only deterministic MVP DB scale smoke (`MvpScaleSmokeTest`) for 200 tables / 500 FKs covering layout, validation, JSON round-trip determinism and SVG export without JavaFX DISPLAY. Updated release verification doc to reference the smoke as optional extended verification.

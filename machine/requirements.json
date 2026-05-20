@@ -17,6 +17,7 @@
       "multiple diagrams per project",
       "sequence diagram",
       "database tables diagram",
+      "PostgreSQL metadata import from live connection: tables, columns, single-column foreign keys, and primary key metadata including composite primary keys as table-level constraints",
       "visual canvas",
       "keyboard-first control",
       "IDE-style shortcuts",
@@ -39,7 +40,8 @@
       "deployment diagram",
       "PlantUML export/import",
       "Mermaid export/import",
-      "SQL DDL import/export",
+      "SQL DDL text import/export",
+      "full grouped/composite foreign key import/model; MVP skips composite FK metadata groups with warnings",
       "sequence combined fragments: alt/opt/loop/par",
       "crow's foot ERD notation",
       "required manual keyboard positioning",
@@ -316,6 +318,11 @@
     },
     "relationSemantics": "Derived from FK + PK/unique/composite constraints; no independent editable relationship metadata in MVP.",
     "compoundActionSafety": "FK, join table, relation-affecting delete and bulk/destructive actions require visible preview or confirmation and must be undo-safe.",
-    "spaceCommandSheet": "Progressive Space command sheet is the DB diagram fast command entry; command palette remains global command entry."
+    "spaceCommandSheet": "Progressive Space command sheet is the DB diagram fast command entry; command palette remains global command entry.",
+    "databaseImportCompositeKeyPolicy": {
+      "singleColumnForeignKeys": "Imported as FK edges from live PostgreSQL metadata.",
+      "compositePrimaryKeys": "Imported deterministically as table-level COMPOSITE_PRIMARY_KEY constraints.",
+      "compositeForeignKeys": "Detected as metadata groups and skipped with import warnings in MVP; no misleading per-column FK edges, grouped FK model/storage remains out of scope."
+    }
   }
 }

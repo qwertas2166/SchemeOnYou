@@ -18,10 +18,8 @@ public class SpaceCommandSheet {
         entries.put("U", "Clear relation pin");
         entries.put("D", "Delete selected");
         entries.put("E", "Edit selected");
-        entries.put("G T", "Go to table");
-        entries.put("G S", "Search");
+        entries.put("G S", "Find element");
         entries.put("L D", "Layout diagram");
-        entries.put("L S", "Layout selection");
     }
     public Map<String, String> entries() { return Map.copyOf(entries); }
 
@@ -35,7 +33,7 @@ public class SpaceCommandSheet {
 
     public boolean isAvailable(String chord, DiagramType activeDiagramType) {
         if (activeDiagramType == DiagramType.DATABASE) return !chord.equals("A P") && !chord.equals("A M");
-        if (activeDiagramType == DiagramType.SEQUENCE) return !chord.equals("A T") && !chord.equals("A C") && !chord.equals("A F") && !chord.equals("A J") && !chord.equals("P") && !chord.equals("U") && !chord.equals("G T") && !chord.equals("L S");
-        return true;
+        if (activeDiagramType == DiagramType.SEQUENCE) return !chord.equals("A T") && !chord.equals("A C") && !chord.equals("A F") && !chord.equals("A J") && !chord.equals("P") && !chord.equals("U");
+        return chord.equals("D") || chord.equals("E") || chord.equals("G S") || chord.equals("L D");
     }
 }

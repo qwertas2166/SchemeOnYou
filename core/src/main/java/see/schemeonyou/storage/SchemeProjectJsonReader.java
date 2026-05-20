@@ -66,23 +66,28 @@ public class SchemeProjectJsonReader {
             Map<String, Object> p = object(participantValue, "participant");
             SequenceParticipant participant = new SequenceParticipant(
                     string(p.get("id"), "participant.id"),
-                    string(p.get("name"), "participant.name")
+                    string(p.get("name"), "participant.name"),
+                    participantType(p.get("type"), "participant.type")
             );
             requireUniqueId(participantIds, participant.getId(), "participant.id");
             diagram.getParticipants().add(participant);
         }
         Set<String> messageIds = new HashSet<>();
+        int messageIndex = 1;
         for (Object messageValue : array(object.get("messages"), "diagram.messages")) {
             Map<String, Object> m = object(messageValue, "message");
             SequenceMessage message = new SequenceMessage(
                     string(m.get("id"), "message.id"),
                     string(m.get("from"), "message.from"),
                     string(m.get("to"), "message.to"),
-                    string(m.get("label"), "message.label")
+                    string(m.get("label"), "message.label"),
+                    messageType(m.get("type"), "message.type"),
+                    optionalInteger(m.get("order"), "message.order", messageIndex)
             );
             message.setActivation(bool(m.get("activation"), "message.activation"));
             requireUniqueId(messageIds, message.getId(), "message.id");
             diagram.getMessages().add(message);
+            messageIndex++;
         }
         return diagram;
     }
@@ -118,6 +123,31 @@ public class SchemeProjectJsonReader {
             requireUniqueId(columnIds, column.getId(), "column.id");
             table.getColumns().add(column);
         }
+        Set<String> constraintIds = new HashSet<>();
+        for (Object constraintValue : optionalArray(object.get("constraints"), "table.constraints")) {
+            Map<String, Object> c = object(constraintValue, "constraint");
+            String id = string(c.get("id"), "constraint.id");
+            requireUniqueId(constraintIds, id, "constraint.id");
+            try {
+                List<String> ids = array(c.get("columnIds"), "constraint.columnIds").stream()
+                        .map(value -> {
+                            try { return string(value, "constraint.columnIds[]"); }
+                            catch (IOException e) { throw new IllegalArgumentException(e); }
+                        })
+                        .toList();
+                for (String columnId : ids) {
+                    if (!columnIds.contains(columnId)) throw new IOException("Unknown column id at constraint.columnIds: " + columnId);
+                }
+                table.getConstraints().add(new DbTableConstraint(
+                        id,
+                        tableConstraintType(c.get("type"), "constraint.type"),
+                        ids
+                ));
+            } catch (IllegalArgumentException e) {
+                if (e.getCause() instanceof IOException io) throw io;
+                throw new IOException(e.getMessage(), e);
+            }
+        }
         return table;
     }
 
@@ -135,6 +165,11 @@ public class SchemeProjectJsonReader {
     private static List<Object> array(Object value, String field) throws IOException {
         if (value instanceof List<?> list) return (List<Object>) list;
         throw new IOException("Expected array at " + field);
+    }
+
+    private static List<Object> optionalArray(Object value, String field) throws IOException {
+        if (value == null) return List.of();
+        return array(value, field);
     }
 
     private static String string(Object value, String field) throws IOException {
@@ -172,6 +207,26 @@ public class SchemeProjectJsonReader {
     private static boolean bool(Object value, String field) throws IOException {
         if (value instanceof Boolean b) return b;
         throw new IOException("Expected boolean at " + field);
+    }
+
+    private static int optionalInteger(Object value, String field, int defaultValue) throws IOException {
+        if (value == null) return defaultValue;
+        return integer(value, field);
+    }
+
+    private static DbTableConstraintType tableConstraintType(Object value, String field) throws IOException {
+        try { return DbTableConstraintType.fromStorageName(string(value, field), field); }
+        catch (IllegalArgumentException e) { throw new IOException(e.getMessage(), e); }
+    }
+
+    private static SequenceParticipantType participantType(Object value, String field) throws IOException {
+        if (value == null) return SequenceParticipantType.SERVICE;
+        return SequenceParticipantType.fromStorageName(string(value, field), field);
+    }
+
+    private static SequenceMessageType messageType(Object value, String field) throws IOException {
+        if (value == null) return SequenceMessageType.SYNC;
+        return SequenceMessageType.fromStorageName(string(value, field), field);
     }
 
     private static Instant instant(Object value, String field) throws IOException {

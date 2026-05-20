@@ -94,4 +94,47 @@ class CommandRouterTest {
         assertFalse(sheet.entries(DiagramType.SEQUENCE).containsKey("A T"));
         assertFalse(sheet.entries(DiagramType.SEQUENCE).containsKey("A F"));
     }
+
+    @Test
+    void shortcutHelpFiltersSpaceCommandsByDiagramContext() {
+        ShortcutHelpModel help = shortcutHelpModel();
+
+        assertTrue(help.entries(DiagramType.DATABASE).containsKey("Space A T"));
+        assertFalse(help.entries(DiagramType.DATABASE).containsKey("Space A P"));
+        assertTrue(help.entries(DiagramType.SEQUENCE).containsKey("Space A P"));
+        assertFalse(help.entries(DiagramType.SEQUENCE).containsKey("Space A T"));
+        assertFalse(help.entries(DiagramType.SEQUENCE).containsKey("Space A F"));
+        assertFalse(help.entries(DiagramType.DATABASE).containsKey("Space G T"));
+        assertFalse(help.entries(DiagramType.SEQUENCE).containsKey("Space G T"));
+        assertFalse(help.entries(DiagramType.DATABASE).containsKey("Space L S"));
+        assertFalse(help.entries(DiagramType.SEQUENCE).containsKey("Space L S"));
+    }
+
+    @Test
+    void shortcutHelpKeepsGlobalShortcutsAndHandlesMissingDiagramSafely() {
+        ShortcutHelpModel help = shortcutHelpModel();
+
+        assertEquals("project.save", help.entries(DiagramType.SEQUENCE).get("Ctrl+S"));
+        assertEquals("help.shortcuts", help.entries(DiagramType.DATABASE).get("F1"));
+        assertEquals("undo", help.entries(null).get("Ctrl+Z"));
+        assertEquals("element.deleteSelected", help.entries(null).get("Delete"));
+        assertFalse(help.entries(null).containsKey("Space A T"));
+        assertFalse(help.entries(null).containsKey("Space A P"));
+        assertFalse(help.entries(null).containsKey("Space G T"));
+        assertFalse(help.entries(null).containsKey("Space L S"));
+    }
+
+    @Test
+    void shortcutMapDoesNotAdvertiseUnwiredSpaceCommands() {
+        ShortcutMap shortcuts = new ShortcutMap();
+
+        assertTrue(shortcuts.commandFor("Space G T").isEmpty());
+        assertTrue(shortcuts.commandFor("Space L S").isEmpty());
+        assertEquals("element.edit", shortcuts.commandFor("Space E").orElseThrow());
+        assertEquals("element.find", shortcuts.commandFor("Space G S").orElseThrow());
+    }
+
+    private ShortcutHelpModel shortcutHelpModel() {
+        return new ShortcutHelpModel(new ShortcutMap(), new CommandRouter(), new SpaceCommandSheet());
+    }
 }

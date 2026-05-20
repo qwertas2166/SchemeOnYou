@@ -1,5 +1,5 @@
 summary - Провести sequence add/edit flows через command palette, Space commands и inspector
-status - work
+status - done
 priority - high
 cost - M
 
@@ -37,3 +37,5 @@ progress -
 validation -
 - 2026-05-15 scheduler-2: `JAVA_HOME=/home/openclaw/workspace/java/openjdk-25.0.2 PATH=/home/openclaw/workspace/java/apache-maven-3.9.11/bin:/home/openclaw/workspace/java/openjdk-25.0.2/bin:$PATH mvn -pl client -am -Dtest=SequenceCommandTest,CommandRouterTest -Dsurefire.failIfNoSpecifiedTests=false test` — pass, 5 tests.
 - 2026-05-15 scheduler-2: `JAVA_HOME=/home/openclaw/workspace/java/openjdk-25.0.2 PATH=/home/openclaw/workspace/java/apache-maven-3.9.11/bin:/home/openclaw/workspace/java/openjdk-25.0.2/bin:$PATH mvn -q -pl client -am test` — pass.
+- 2026-05-19 21:02 MSK scheduler-3: analysis pass confirmed this active issue still covers the main remaining sequence MVP gap; current inspector edits label/type/order/activation but keeps message `From`/`To` read-only, so acceptance for editing source/target is not closed yet. Do not create a duplicate backlog issue; next implementation slice should add keyboard-accessible endpoint selection/editing or explicitly split it if picker scope grows beyond M.
+- 2026-05-19 21:30 MSK scheduler-2: backlog/ пуст; продолжена highest-priority high/M активная задача. Закрыт оставшийся sequence message endpoint editing slice: inspector `From`/`To` стали keyboard-editable text fields, принимают participant id или name, изменения идут через undoable `EditValueCommand`; `SequenceMessage` получил undo-safe setters для endpoints. Verification: `mvn -q -pl client -am -Dtest=InspectorPresenterTest,CommandRouterTest,SequenceCommandTest -Dsurefire.failIfNoSpecifiedTests=false test`, `git diff --check` passed. Status set to done.

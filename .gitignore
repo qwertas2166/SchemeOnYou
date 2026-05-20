@@ -9,3 +9,7 @@ generation/build
 back/pid
 build
 target
+
+# Local database connection profiles may contain plaintext secrets.
+schemeonyou-connection-profiles.local
+schemeonyou-connection-profiles.local.tmp
